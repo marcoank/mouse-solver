@@ -1,0 +1,20 @@
+# da roccat-tools (GPL, solo come riferimento) e OpenRGB. Luci: tubo e rotella insieme, nessuna luminosità.
+name = "Roccat Kova (2016)"
+vid = 0x1E7D
+pid = 0x2CEE
+aliases = [[0x1E7D, 0x2CEF], [0x1E7D, 0x2CF0]]
+driver = "roccat_new"
+status = "experimental"
+notes = "Si modifica il profilo attivo. Le luci (tubo e rotella) hanno lo stesso effetto e colore. Nessuna luminosità: usa un colore più scuro."
+
+[roccat_new]
+family = "kova_2016"
+
+[caps]
+dpi_min = 250
+dpi_max = 7000
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

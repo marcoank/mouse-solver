@@ -1,0 +1,22 @@
+# da evan-razzaque/open-pulsefire-haste (GPL-3.0), documento e catture di NGenuity: protocollo NGenuity2, DPI in passi da 100.
+name = "HyperX Pulsefire Haste Wireless (ricevitore)"
+vid = 0x03F0
+pid = 0x028E
+driver = "hyperx"
+status = "experimental"
+notes = "DPI e polling si rileggono dal mouse. Il colore salvato non si può rileggere (si vede l'ultimo scritto da qui); respirazione e spettro non sono ancora documentati in modo affidabile."
+
+[hyperx]
+family = "haste"
+interface = 2
+usage_page = 0xFF00
+
+[caps]
+dpi_min = 200
+dpi_max = 16000
+dpi_step = 100
+min_stages = 1
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["scroll"]
+effects = ["static", "off"]

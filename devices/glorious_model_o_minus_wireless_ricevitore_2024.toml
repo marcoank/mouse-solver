@@ -1,0 +1,23 @@
+# Famiglia GP, mappa classic. Da korkje/mxw (MIT).
+name = "Glorious Model O- Wireless (ricevitore)"
+vid = 0x258A
+pid = 0x2024
+driver = "glorious"
+status = "experimental"
+notes = "Il mouse non permette di rileggere le impostazioni: si vede l'ultimo stato scritto da questa app. Ogni scrittura attiva il profilo 1. Sempre 4 stadi DPI."
+
+[glorious]
+family = "gp"
+link = "dongle"
+map = "classic"
+cable_pid = 0x2013
+
+[caps]
+dpi_min = 100
+dpi_max = 19000
+dpi_step = 50
+min_stages = 4
+max_stages = 4
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

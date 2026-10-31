@@ -1,0 +1,24 @@
+# da OpenRGB (GPL-2.0), Controllers/CoolerMasterController: solo luci salvate nel mouse.
+name = "Cooler Master MM530"
+vid = 0x2516
+pid = 0x0065
+driver = "coolermaster"
+status = "experimental"
+notes = "Si possono cambiare solo le luci (salvate nel mouse e rilette per verifica): stadi DPI e polling di Cooler Master non sono documentati."
+
+[coolermaster]
+family = "mm"
+command = 0x2C
+interface = 1
+usage_page = 0xFF00
+
+[caps]
+dpi_min = 0
+dpi_max = 0
+dpi_step = 1
+min_stages = 0
+max_stages = 0
+active_stage_settable = false
+polling = []
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

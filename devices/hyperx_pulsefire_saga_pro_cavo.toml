@@ -1,0 +1,21 @@
+# da notwaterbtl/hyperx-saga-control (MIT): tabella 0x32, sequenze di salvataggio catturate da NGenuity.
+name = "HyperX Pulsefire Saga Pro (cavo)"
+vid = 0x03F0
+pid = 0x04BF
+driver = "hyperx"
+status = "experimental"
+notes = "Il mouse non permette di rileggere le impostazioni: si vedono gli ultimi valori scritti da qui. Sempre 4 stadi DPI. DPI e polling stanno nella stessa tabella: cambiando i DPI si riscrive l'ultimo polling impostato da qui (1000 Hz se mai impostato). Solo i polling visti nelle catture."
+
+[hyperx]
+family = "saga"
+interface = 2
+
+[caps]
+dpi_min = 50
+dpi_max = 26000
+dpi_step = 50
+min_stages = 4
+max_stages = 4
+polling = [1000]
+zones = ["mouse"]
+effects = ["static", "off"]

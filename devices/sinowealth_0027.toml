@@ -1,0 +1,36 @@
+# da libratbag data/devices (MIT). Il modello si riconosce dalla versione firmware.
+name = "SinoWealth 258a:0027"
+vid = 0x258A
+pid = 0x0027
+driver = "sinowealth"
+status = "experimental"
+notes = "Firmware non in tabella = sola lettura, per sicurezza. Chiudi il software del produttore durante l'uso."
+
+[[sinowealth.firmware]]
+version = "3106"
+name = "DreamMachines DM5 Blink"
+led = "rgb"
+
+[[sinowealth.firmware]]
+version = "V161"
+name = "G-Wolves Hati HT-M"
+led = "none"
+
+[[sinowealth.firmware]]
+version = "3110"
+name = "Genesis Xenon 770"
+led = "rgb"
+
+[[sinowealth.firmware]]
+version = "V102"
+name = "Glorious Model O (firmware vecchio)"
+led = "rbg"
+
+[caps]
+dpi_min = 100
+dpi_max = 12000      # il valore vero dipende dal sensore e viene letto dal mouse
+dpi_step = 100
+max_stages = 8
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

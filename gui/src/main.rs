@@ -113,7 +113,8 @@ impl App {
             }
         }
         let res = apply_state(drv.as_mut(), &cur, &target);
-        self.reload();
+        // riapro il mouse: alcuni (Corsair) si ricollegano dopo il cambio di polling
+        self.rescan();
         let how = if cur.cached { "Inviato al mouse (non si può rileggere)" } else { "Salvato nel mouse e verificato" };
         match res {
             Ok(done) if done.is_empty() => self.ok("Niente da cambiare."),

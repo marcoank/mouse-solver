@@ -1,0 +1,20 @@
+# da vole (MIT), xm2ctl (MIT), OP1-WebAPP (MIT). Ricevitore unico per XM2w 4k, OP1w 4k e le v2:
+# il driver chiede al mouse chi è (A1 0E) e adatta DPI, polling e stadio attivo al modello.
+# Le [caps] qui sotto sono quelle dei v1 (le più prudenti).
+name = "Endgame Gear XM2w 4k / OP1w 4k (ricevitore)"
+vid = 0x3367
+pid = 0x1970
+driver = "endgame"
+status = "experimental"
+notes = "Il mouse deve essere sveglio: muovilo prima di leggere o scrivere. Sui modelli v1 lo stadio attivo si cambia solo col tasto DPI. Il LED ha colori fissi: niente luci."
+
+[endgame]
+family = "4k"
+
+[caps]
+dpi_min = 50
+dpi_max = 26000
+dpi_step = 50
+max_stages = 4
+active_stage_settable = false
+polling = [1000, 2000, 4000]

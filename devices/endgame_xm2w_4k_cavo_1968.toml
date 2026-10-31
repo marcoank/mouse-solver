@@ -1,0 +1,18 @@
+# da vole (MIT) e xm2ctl (MIT, provato sul mouse). XM2w 4k prima versione, collegato col cavo.
+name = "Endgame Gear XM2w 4k (cavo)"
+vid = 0x3367
+pid = 0x1968
+driver = "endgame"
+status = "experimental"
+notes = "Via cavo il mouse va sempre a 1000 Hz: il polling impostato vale quando usi il ricevitore. Lo stadio attivo si cambia solo col tasto DPI. Il LED ha colori fissi: niente luci."
+
+[endgame]
+family = "4k"
+
+[caps]
+dpi_min = 50
+dpi_max = 26000
+dpi_step = 50
+max_stages = 4
+active_stage_settable = false
+polling = [1000, 2000, 4000]

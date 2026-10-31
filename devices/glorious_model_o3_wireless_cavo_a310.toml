@@ -1,0 +1,20 @@
+# Famiglia G3. Dai fatti di Virel0/glorious-linux (GPL-3.0, provato su un D3): nessun codice copiato.
+name = "Glorious Model O3 Wireless (cavo)"
+vid = 0x3794
+pid = 0xA310
+driver = "glorious"
+status = "experimental"
+notes = "Le impostazioni si rileggono dal mouse. Se non risponde è in standby: muovilo. Il polling scritto è quello del cavo. Modello non provato (stesso protocollo del D3 secondo glorious-linux); altre fonti indicano il PID A312."
+
+[glorious]
+family = "g3"
+link = "cable"
+
+[caps]
+dpi_min = 50
+dpi_max = 26000
+dpi_step = 50
+max_stages = 6
+polling = [125, 250, 500, 1000, 2000, 4000, 8000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

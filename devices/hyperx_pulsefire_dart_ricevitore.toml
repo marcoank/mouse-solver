@@ -1,0 +1,23 @@
+# da santeri3700/hyperx_pulsefire_dart_reverse_engineering (CC0) e OpenRGB (GPL-2.0): protocollo NGenuity2.
+name = "HyperX Pulsefire Dart (ricevitore)"
+vid = 0x0951
+pid = 0x16E1
+aliases = [[0x03F0, 0x068E]]
+driver = "hyperx"
+status = "experimental"
+notes = "Il mouse non permette di rileggere le impostazioni: si vedono gli ultimi valori scritti da qui. Ogni modifica viene salvata nel mouse (comando DE FF)."
+
+[hyperx]
+family = "dart"
+interface = 2
+usage_page = 0xFF00
+
+[caps]
+dpi_min = 100
+dpi_max = 16000
+dpi_step = 50
+min_stages = 1
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["logo", "scroll"]
+effects = ["static", "breathing", "spectrum", "off"]

@@ -1,0 +1,21 @@
+# Lamzu Compx = protocollo CompX/Nordic, da lamzu-cfg (MIT/Apache) e thorn-config (MIT, provato sul Thorn 4K).
+name = "Lamzu Atlantis / Thorn (cavo)"
+vid = 0x3554
+pid = 0xf50f
+driver = "compx"
+status = "experimental"
+notes = "Si modifica solo il profilo attivo. DPI fino a 12800: la codifica oltre 12800 non è documentata per Lamzu. Luci non gestite (valori della spia DPI sconosciuti per Lamzu)."
+
+[compx]
+transport = "output"
+reply_id = 8
+usage_page = 0xFF02
+write_stage_count = true
+
+[caps]
+dpi_min = 50
+dpi_max = 12800
+dpi_step = 50
+min_stages = 1
+max_stages = 8
+polling = [125, 250, 500, 1000]

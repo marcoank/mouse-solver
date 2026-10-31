@@ -11,6 +11,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --workspace
+      - run: python -I tools/test_analyze_capture.py
       - run: cargo build --release --workspace
       - uses: actions/upload-artifact@v4
         with:

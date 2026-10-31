@@ -1,0 +1,21 @@
+# da libratbag data/devices (MIT). Il modello si riconosce dalla versione firmware.
+name = "Glorious Model D"
+vid = 0x258A
+pid = 0x0033
+driver = "sinowealth"
+status = "experimental"
+notes = "Firmware non in tabella = sola lettura, per sicurezza. Chiudi il software del produttore durante l'uso."
+
+[[sinowealth.firmware]]
+version = "V102"
+name = "Glorious Model D"
+led = "rbg"
+
+[caps]
+dpi_min = 100
+dpi_max = 12000      # il valore vero dipende dal sensore e viene letto dal mouse
+dpi_step = 100
+max_stages = 8
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

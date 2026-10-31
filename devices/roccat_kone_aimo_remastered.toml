@@ -1,0 +1,19 @@
+# da Kone-AIMO-Config (MIT) e roccat-kone-aimo-linux (GPL, solo come riferimento): concordano byte per byte.
+name = "Roccat Kone AIMO Remastered"
+vid = 0x1E7D
+pid = 0x2E2C
+driver = "roccat_new"
+status = "experimental"
+notes = "Kone AIMO 16K / Remastered. Il Kone AIMO originale (1e7d:2e27) usa un formato non documentato e non è supportato. Gli 11 LED prendono lo stesso colore."
+
+[roccat_new]
+family = "kone_aimo"
+
+[caps]
+dpi_min = 100
+dpi_max = 16000
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "wave", "off"]

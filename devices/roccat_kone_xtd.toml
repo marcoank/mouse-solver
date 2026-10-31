@@ -1,0 +1,19 @@
+# da libratbag (MIT): driver-roccat.c. Le luci del Kone XTD non sono documentate.
+name = "Roccat Kone XTD"
+vid = 0x1E7D
+pid = 0x2E22
+driver = "roccat"
+status = "experimental"
+
+[roccat]
+settings_len = 43
+layout = "xtd"
+checksum = "sum"
+dpi_encoding = "div50"
+
+[caps]
+dpi_min = 200
+dpi_max = 8200
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]

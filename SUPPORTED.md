@@ -2,7 +2,7 @@
 
 Generato da `tools/update_devices.py` dai file in `devices/`. Non modificare a mano.
 
-**210 file modello**: 1 verificati su mouse reale, 0 provati da altri, 209 sperimentali (protocollo preso da progetti open source, mai provato da noi).
+**369 file modello**: 1 verificati su mouse reale, 0 provati da altri, 368 sperimentali (protocollo preso da progetti open source, mai provato da noi).
 
 | Mouse | Stato | Driver | VID:PID | DPI | Polling (Hz) | Zone luci |
 |---|---|---|---|---|---|---|
@@ -68,7 +68,150 @@ Generato da `tools/update_devices.py` dai file in `devices/`. Non modificare a m
 | TUF GAMING M5 | experimental | asus | 0b05:1898 | 100-6200 (2 stadi) | - | - |
 | TUF GAMING Mini Miku Edition (Wired) | experimental | asus | 0b05:1c56 | 100-12000 (4 stadi) | 125/250/500/1000 | logo |
 | TUF GAMING Mini Miku Edition (Wireless) | experimental | asus | 0b05:1c57 | 100-12000 (4 stadi) | 125/250/500/1000 | logo |
+| Endgame Gear OP1we (cavo) | experimental | compx | 3367:1962 | 50-10000 (4 stadi) | 125/250/500/1000 | - |
+| Endgame Gear XM2we (cavo) | experimental | compx | 3367:1960 | 50-10000 (4 stadi) | 125/250/500/1000 | - |
+| Endgame Gear XM2we / OP1we (ricevitore) | experimental | compx | 3367:1961 | 50-10000 (4 stadi) | 125/250/500/1000 | - |
+| Lamzu Atlantis / Thorn (cavo) | experimental | compx | 3554:f50f | 50-12800 (8 stadi) | 125/250/500/1000 | - |
+| Lamzu Atlantis / Thorn (ricevitore 1K) | experimental | compx | 3554:f50d | 50-12800 (8 stadi) | 125/250/500/1000 | - |
+| Lamzu Atlantis / Thorn (ricevitore 4K) | experimental | compx | 3554:f510 | 50-12800 (8 stadi) | 125/250/500/1000/2000/4000 | - |
+| Pulsar X2V2 / Xlite V3 / X2A Wireless (cavo) | experimental | compx | 3554:f507 | 50-26000 (4 stadi) | 125/250/500/1000 | dpi |
+| Pulsar X2V2 / Xlite V3 / X2A Wireless (ricevitore 1K) | experimental | compx | 3554:f508 | 50-26000 (4 stadi) | 125/250/500/1000 | dpi |
+| Pulsar X2V2 / Xlite V3 / X2A Wireless (ricevitore F509) | experimental | compx | 3554:f509 | 50-26000 (4 stadi) | 125/250/500/1000 | dpi |
+| Cooler Master MM530 | experimental | coolermaster | 2516:0065 | - | - | mouse |
+| Cooler Master MM711 | experimental | coolermaster | 2516:0101 | - | - | mouse |
+| Cooler Master MM712 | experimental | coolermaster | 2516:0169 | - | - | mouse |
+| Cooler Master MM720 | experimental | coolermaster | 2516:0141 | - | - | mouse |
+| Cooler Master MM730 | experimental | coolermaster | 2516:0165 | - | - | mouse |
+| Corsair Dark Core RGB | experimental | corsair | 1b1c:1b35 | 100-12000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Dark Core RGB (ricevitore) | experimental | corsair | 1b1c:1b64 | 100-12000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Dark Core RGB Pro (cavo) | experimental | corsair | 1b1c:1b80 | - | 125/250/500/1000 | - |
+| Corsair Dark Core RGB Pro (ricevitore) | experimental | corsair | 1b1c:1b81 | - | 125/250/500/1000 | - |
+| Corsair Dark Core RGB Pro SE (cavo) | experimental | corsair | 1b1c:1b7e | - | 125/250/500/1000 | - |
+| Corsair Dark Core RGB Pro SE (ricevitore) | experimental | corsair | 1b1c:1b7f | - | 125/250/500/1000 | - |
+| Corsair Dark Core RGB SE | experimental | corsair | 1b1c:1b4b | 100-12000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Dark Core RGB SE (ricevitore) | experimental | corsair | 1b1c:1b51 | 100-12000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Glaive RGB | experimental | corsair | 1b1c:1b34 | 100-16000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Glaive RGB Pro | experimental | corsair | 1b1c:1b74 | 100-16000 (5 stadi) | 125/250/500/1000 | front, logo |
+| Corsair Harpoon RGB | experimental | corsair | 1b1c:1b3c | 100-6000 (5 stadi) | 125/250/500/1000 | front, logo |
+| Corsair Harpoon RGB Pro | experimental | corsair | 1b1c:1b75 | 100-12000 (5 stadi) | 125/250/500/1000 | front, logo |
+| Corsair Harpoon RGB Wireless (cavo) | experimental | corsair | 1b1c:1b5e | - | 125/250/500/1000 | - |
+| Corsair Harpoon RGB Wireless (ricevitore) | experimental | corsair | 1b1c:1b65 | - | 125/250/500/1000 | - |
+| Corsair Ironclaw RGB | experimental | corsair | 1b1c:1b5d | 100-18000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Ironclaw RGB Wireless (cavo) | experimental | corsair | 1b1c:1b4c | - | 125/250/500/1000 | - |
+| Corsair Ironclaw RGB Wireless (ricevitore) | experimental | corsair | 1b1c:1b66 | - | 125/250/500/1000 | - |
+| Corsair Ironclaw Wireless SE (cavo) | experimental | corsair | 1b1c:2b32 | - | 125/250/500/1000 | - |
+| Corsair Ironclaw Wireless SE (Slipstream) | experimental | corsair | 1b1c:2b00 | - | 125/250/500/1000 | - |
+| Corsair Katar | experimental | corsair | 1b1c:1b22 | 100-8000 (5 stadi) | 125/250/500/1000 | front, logo |
+| Corsair Katar Pro | experimental | corsair | 1b1c:1b93 | - | 125/250/500/1000 | - |
+| Corsair Katar Pro V2 | experimental | corsair | 1b1c:1bba | - | 125/250/500/1000 | - |
+| Corsair Katar Pro XT | experimental | corsair | 1b1c:1bac | - | 125/250/500/1000 | - |
+| Corsair M55 RGB Pro | experimental | corsair | 1b1c:1b70 | - | 125/250/500/1000 | - |
+| Corsair M65 Pro RGB | experimental | corsair | 1b1c:1b2e | 100-12000 (5 stadi) | 125/250/500/1000 | front, logo |
+| Corsair M65 RGB | experimental | corsair | 1b1c:1b12 | 100-8200 (5 stadi) | 125/250/500/1000 | front, logo |
+| Corsair M65 RGB Elite | experimental | corsair | 1b1c:1b5a | 100-18000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair M65 RGB Ultra | experimental | corsair | 1b1c:1b9e | - | 125/250/500/1000 | - |
+| Corsair M65 RGB Ultra Wireless | experimental | corsair | 1b1c:1bb5 | - | 125/250/500/1000 | - |
+| Corsair M75 | experimental | corsair | 1b1c:1bf0 | - | 125/250/500/1000 | - |
+| Corsair M75 Wireless (cavo) | experimental | corsair | 1b1c:1bf1 | - | 125/250/500/1000 | - |
+| Corsair M75 Wireless (Slipstream) | experimental | corsair | 1b1c:1bdc | - | 125/250/500/1000 | - |
+| Corsair Nightsword RGB | experimental | corsair | 1b1c:1b5c | 100-18000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Sabre RGB | experimental | corsair | 1b1c:1b2f | 100-10000 (5 stadi) | 125/250/500/1000 | front, logo, wheel |
+| Corsair Sabre RGB (laser) | experimental | corsair | 1b1c:1b19 | 100-8200 (5 stadi) | 125/250/500/1000 | front, logo, wheel |
+| Corsair Sabre RGB (ottico) | experimental | corsair | 1b1c:1b14 | 100-6400 (5 stadi) | 125/250/500/1000 | front, logo, wheel |
+| Corsair Sabre RGB (ottico, CH-9000111) | experimental | corsair | 1b1c:1b32 | 100-6400 (5 stadi) | 125/250/500/1000 | front, logo, wheel |
+| Corsair Scimitar Elite RGB | experimental | corsair | 1b1c:1b8b | 100-18000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Scimitar Elite RGB | experimental | corsair | 1b1c:1be3 | - | 125/250/500/1000 | - |
+| Corsair Scimitar Pro RGB | experimental | corsair | 1b1c:1b3e | 100-16000 (5 stadi) | 125/250/500/1000 | - |
+| Corsair Scimitar RGB | experimental | corsair | 1b1c:1b1e | 100-12000 (5 stadi) | 125/250/500/1000 | front, logo, wheel, thumb |
+| Endgame Gear OP1 8k v2 | experimental | endgame | 3367:1978 | 10-30000 (4 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Endgame Gear OP1w 4k (cavo) | experimental | endgame | 3367:1972 | 50-26000 (4 stadi) | 1000/2000/4000 | - |
+| Endgame Gear OP1w 4k v2 (cavo) | experimental | endgame | 3367:1984 | 10-30000 (4 stadi) | 125/1000/2000/4000 | - |
+| Endgame Gear XM2w 4k (cavo) | experimental | endgame | 3367:1968 | 50-26000 (4 stadi) | 1000/2000/4000 | - |
+| Endgame Gear XM2w 4k / OP1w 4k (ricevitore) | experimental | endgame | 3367:1970 | 50-26000 (4 stadi) | 1000/2000/4000 | - |
+| Endgame Gear XM2w 4k v2 (cavo) | experimental | endgame | 3367:1982 | 10-30000 (4 stadi) | 125/1000/2000/4000 | - |
+| Glorious Model D 2 PRO (cavo) | experimental | glorious | 258a:201a | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D 2 PRO (ricevitore) | experimental | glorious | 258a:2034 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D 2 PRO 4K/8K (cavo) | experimental | glorious | 258a:201c | 100-26000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Glorious Model D 2 PRO 4K/8K (ricevitore) | experimental | glorious | 258a:2036 | 100-26000 (6 stadi) | 125/250/500/1000/2000/4000 | - |
+| Glorious Model D 2 Wireless (cavo) | experimental | glorious | 093a:824a | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D 2 Wireless (ricevitore) | experimental | glorious | 093a:824d | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D Wireless (cavo) | experimental | glorious | 258a:2012 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D Wireless (ricevitore) | experimental | glorious | 258a:2023 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D- Wireless (cavo) | experimental | glorious | 258a:2014 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D- Wireless (ricevitore) | experimental | glorious | 258a:2025 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D3 Wireless (cavo) | experimental | glorious | 3794:a322 | 50-26000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | mouse |
+| Glorious Model D3/O3 Wireless (ricevitore) | experimental | glorious | 3794:a300 | 50-26000 (6 stadi) | 125/250/500/1000/2000/4000 | mouse |
+| Glorious Model I 2 Wireless (cavo) | experimental | glorious | 093a:821a | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model I 2 Wireless (ricevitore) | experimental | glorious | 093a:821d | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O 2 Mini Wireless (cavo) | experimental | glorious | 093a:826a | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O 2 Mini Wireless (ricevitore) | experimental | glorious | 093a:826d | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O 2 PRO (cavo) | experimental | glorious | 258a:2019 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O 2 PRO (ricevitore) | experimental | glorious | 258a:2033 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O 2 PRO 4K/8K (cavo) | experimental | glorious | 258a:201b | 100-26000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Glorious Model O 2 PRO 4K/8K (ricevitore) | experimental | glorious | 258a:2035 | 100-26000 (6 stadi) | 125/250/500/1000/2000/4000 | - |
+| Glorious Model O 2 Wireless (cavo) | experimental | glorious | 093a:822a | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O 2 Wireless (ricevitore) | experimental | glorious | 093a:822d | 100-26000 (6 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O Pro (cavo) | experimental | glorious | 258a:2015 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O Pro (ricevitore) | experimental | glorious | 258a:2027 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O Wireless (cavo) | experimental | glorious | 258a:2011 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O Wireless (ricevitore) | experimental | glorious | 258a:2022 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O- Wireless (cavo) | experimental | glorious | 258a:2013 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O- Wireless (ricevitore) | experimental | glorious | 258a:2024 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O3 Wireless (cavo) | experimental | glorious | 3794:a310 | 50-26000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | mouse |
+| Glorious Series 2 PRO (cavo) | experimental | glorious | 258a:201d | 100-19000 (4 stadi) | - | mouse |
+| Glorious Series 2 PRO (ricevitore) | experimental | glorious | 258a:2039 | 100-19000 (4 stadi) | - | mouse |
+| Glorious Series One Pro (cavo) | experimental | glorious | 258a:2018 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| Glorious Series One Pro (ricevitore) | experimental | glorious | 258a:2031 | 100-19000 (4 stadi) | 125/250/500/1000 | mouse |
+| HyperX Pulsefire Dart (cavo) | experimental | hyperx | 0951:16e2, 03f0:088e | 100-16000 (5 stadi) | 125/250/500/1000 | logo, scroll |
+| HyperX Pulsefire Dart (ricevitore) | experimental | hyperx | 0951:16e1, 03f0:068e | 100-16000 (5 stadi) | 125/250/500/1000 | logo, scroll |
+| HyperX Pulsefire Haste Wireless (cavo) | experimental | hyperx | 03f0:048e | 200-16000 (5 stadi) | 125/250/500/1000 | scroll |
+| HyperX Pulsefire Haste Wireless (ricevitore) | experimental | hyperx | 03f0:028e | 200-16000 (5 stadi) | 125/250/500/1000 | scroll |
+| HyperX Pulsefire Saga Pro (cavo) | experimental | hyperx | 03f0:04bf | 50-26000 (4 stadi) | 1000 | mouse |
+| HyperX Pulsefire Saga Pro (ricevitore) | experimental | hyperx | 03f0:06bf | 50-26000 (4 stadi) | 1000/4000 | mouse |
 | Logitech (HID++ 2.0) | experimental | logitech | tutti | 100-25600 | 125/250/500/1000 | - |
+| Lamzu Atlantis Mini (cavo) | experimental | pulsar | 37b0:0028 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Atlantis Mini (ricevitore 1K) | experimental | pulsar | 37b0:002b | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Atlantis Mini (ricevitore 8K) | experimental | pulsar | 37b0:002a | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Atlantis OG Champion (cavo) | experimental | pulsar | 37b0:0025 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Atlantis OG Champion (ricevitore 8K) | experimental | pulsar | 37b0:0027 | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Inca (cavo) | experimental | pulsar | 37b0:0009 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Inca (ricevitore 1K) | experimental | pulsar | 37b0:000f | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Inca (ricevitore 8K) | experimental | pulsar | 37b0:0010 | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Maya (cavo) | experimental | pulsar | 37b0:0011 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Maya (ricevitore 1K) | experimental | pulsar | 37b0:0013 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Maya (ricevitore 8K) | experimental | pulsar | 37b0:0015 | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Maya M 54H20 (cavo) | experimental | pulsar | 37b0:002c | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Maya M 54H20 (ricevitore 8K) | experimental | pulsar | 37b0:002e | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Maya X (cavo) | experimental | pulsar | 373e:001c | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Maya X (ricevitore 1K) | experimental | pulsar | 373e:001d | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Maya X (ricevitore 8K) | experimental | pulsar | 373e:001e | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Maya X V2 (cavo) | experimental | pulsar | 37b0:001f | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Maya X V2 (ricevitore 8K) | experimental | pulsar | 373e:0016 | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Paro (cavo) | experimental | pulsar | 37b0:0007 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Paro (ricevitore 1K) | experimental | pulsar | 37b0:000d | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Paro (ricevitore 8K) | experimental | pulsar | 37b0:000e | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Tachi (cavo) | experimental | pulsar | 37b0:0005 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Tachi (ricevitore 1K) | experimental | pulsar | 37b0:000b | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Tachi (ricevitore 8K) | experimental | pulsar | 37b0:000c | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Tachi Lite (cavo) | experimental | pulsar | 37b0:001c | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Tachi Lite (ricevitore 8K) | experimental | pulsar | 37b0:001e | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Thorn (cavo) | experimental | pulsar | 37b0:0017 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Thorn (ricevitore 1K) | experimental | pulsar | 37b0:0019 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Thorn (ricevitore 8K) | experimental | pulsar | 37b0:001b | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Thorn V2 (cavo) | experimental | pulsar | 37b0:0021 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Thorn V2 (ricevitore 8K) | experimental | pulsar | 37b0:0023 | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Lamzu Thorn V2 54H20 (cavo) | experimental | pulsar | 37b0:0030 | 50-42000 (6 stadi) | 125/250/500/1000 | - |
+| Lamzu Thorn V2 54H20 (ricevitore 8K) | experimental | pulsar | 37b0:0032 | 50-42000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Pulsar Feinmann F01 (ricevitore 8K) | experimental | pulsar | 3710:5404 | 50-32000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | dpi |
+| Pulsar ricevitore 1K (Xlite v4, X2 v3, X2H v3, X2A v3, X3) | experimental | pulsar | 3710:5402 | 100-32000 (6 stadi) | 125/250/500/1000 | - |
+| Pulsar ricevitore 8K (Fusion2) | experimental | pulsar | 3710:5403 | 100-32000 (6 stadi) | 125/250/500/1000/2000/4000/8000 | - |
+| Pulsar X2 (cavo) | experimental | pulsar | 3710:1402 | 100-26000 (6 stadi) | 125/250/500/1000 | dpi |
+| Pulsar X2A (cavo) | experimental | pulsar | 3710:1404 | 100-26000 (6 stadi) | 125/250/500/1000 | dpi |
+| Pulsar X2H (cavo) | experimental | pulsar | 3710:1403 | 100-26000 (6 stadi) | 125/250/500/1000 | dpi |
+| Pulsar X3 (cavo) | experimental | pulsar | 3710:3409 | 100-32000 (6 stadi) | 125/250/500/1000 | - |
+| Pulsar X3 LHD (cavo) | experimental | pulsar | 3710:3410 | 100-32000 (6 stadi) | 125/250/500/1000 | - |
+| Pulsar Xlite (cavo) | experimental | pulsar | 3710:1401 | 100-26000 (6 stadi) | 125/250/500/1000 | dpi |
+| Pulsar Xlite v4 (cavo) | experimental | pulsar | 3710:3401 | 100-32000 (6 stadi) | 125/250/500/1000 | - |
 | Razer Abyssus | experimental | razer | 1532:0042 | 100-16000 | 125/500/1000 | - |
 | Razer Abyssus 1800 | experimental | razer | 1532:0020 | 100-1800 | 125/500/1000 | - |
 | Razer Abyssus 2000 | experimental | razer | 1532:005e | 100-2000 | 125/500/1000 | - |
@@ -182,6 +325,22 @@ Generato da `tools/update_devices.py` dai file in `devices/`. Non modificare a m
 | Razer Viper V3 Pro SE (Wired) | experimental | razer | 1532:00de | 100-35000 (5 stadi) | 125/500/1000 | - |
 | Razer Viper V3 Pro SE (Wireless) | experimental | razer | 1532:00df | 100-35000 (5 stadi) | 125/500/1000 | - |
 | RazerBasiliskUltimateReceiver | experimental | razer | 1532:0088 | 100-20000 | 125/500/1000 | logo, scroll, left, right |
+| Roccat Kone EMP | experimental | roccat | 1e7d:2e24 | 100-12000 (5 stadi) | 125/250/500/1000 | mouse |
+| Roccat Kone Pure | experimental | roccat | 1e7d:2dc2, 1e7d:2dbe, 1e7d:2dcb | 200-5000 (5 stadi) | 125/250/500/1000 | - |
+| Roccat Kone XTD | experimental | roccat | 1e7d:2e22 | 200-8200 (5 stadi) | 125/250/500/1000 | - |
+| Roccat Kone AIMO Remastered | experimental | roccat_new | 1e7d:2e2c | 100-16000 (5 stadi) | 125/250/500/1000 | mouse |
+| Roccat Kone Pro | experimental | roccat_new | 1e7d:2c88 | 50-19000 (5 stadi) | 125/250/500/1000 | mouse |
+| Roccat Kone XP | experimental | roccat_new | 1e7d:2c8b | 50-19000 (5 stadi) | 125/250/500/1000 | mouse |
+| Roccat Kova (2016) | experimental | roccat_new | 1e7d:2cee, 1e7d:2cef, 1e7d:2cf0 | 250-7000 (5 stadi) | 125/250/500/1000 | mouse |
+| Roccat Kova AIMO | experimental | roccat_new | 1e7d:2cf1, 1e7d:2cf3 | 100-7000 (5 stadi) | 125/250/500/1000 | mouse |
+| Turtle Beach Roccat Kone XP Air | experimental | roccat_new | 10f5:5017, 10f5:5015 | 50-19000 (5 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model D | experimental | sinowealth | 258a:0033 | 100-12000 (8 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O Eternal | experimental | sinowealth | 3794:a000 | 100-12000 (8 stadi) | 125/250/500/1000 | mouse |
+| Glorious Model O/O- | experimental | sinowealth | 258a:0036 | 100-12000 (8 stadi) | 125/250/500/1000 | mouse |
+| SinoWealth 258a:0027 | experimental | sinowealth | 258a:0027 | 100-12000 (8 stadi) | 125/250/500/1000 | mouse |
+| SinoWealth 258a:0029 | experimental | sinowealth | 258a:0029 | 100-12000 (8 stadi) | 125/250/500/1000 | mouse |
+| SinoWealth 258a:0051 | experimental | sinowealth | 258a:0051 | 100-12000 (8 stadi) | 125/250/500/1000 | mouse |
+| SinoWealth 258a:1007 | experimental | sinowealth | 258a:1007 | 100-12000 (8 stadi) | 125/250/500/1000 | mouse |
 | SteelSeries Aerox 3 | experimental | steelseries | 1038:1836 | 200-8500 (5 stadi) | 125/250/500/1000 | z1, z2, z3 |
 | SteelSeries Aerox 3 Wireless | experimental | steelseries | 1038:183a, 1038:187a | 100-18000 (5 stadi) | 125/250/500/1000 | z1, z2, z3 |
 | SteelSeries Aerox 3 Wireless | experimental | steelseries | 1038:1838, 1038:1878 | 100-18000 (5 stadi) | 125/250/500/1000 | z1, z2, z3 |

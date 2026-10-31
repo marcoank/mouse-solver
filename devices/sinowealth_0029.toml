@@ -1,0 +1,28 @@
+# da libratbag data/devices (MIT). Il modello si riconosce dalla versione firmware.
+name = "SinoWealth 258a:0029"
+vid = 0x258A
+pid = 0x0029
+driver = "sinowealth"
+status = "experimental"
+notes = "Firmware non in tabella = sola lettura, per sicurezza. Chiudi il software del produttore durante l'uso."
+
+[[sinowealth.firmware]]
+version = "V127"
+name = "Machenike M620"
+led = "rgb"
+config_size = 131
+
+[[sinowealth.firmware]]
+version = "V287"
+name = "Mad Dog GM905"
+led = "rgb"
+config_size = 131
+
+[caps]
+dpi_min = 100
+dpi_max = 12000      # il valore vero dipende dal sensore e viene letto dal mouse
+dpi_step = 100
+max_stages = 8
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

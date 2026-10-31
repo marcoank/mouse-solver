@@ -1,0 +1,18 @@
+# da egg-mouse (Apache-2.0, catture e prova di persistenza sul mouse) ed egctl. Anche "Raw Input".
+# Si riscrive l'intero blocco di configurazione, come il programma ufficiale.
+name = "Endgame Gear OP1 8k v2"
+vid = 0x3367
+pid = 0x1978
+driver = "endgame"
+status = "experimental"
+notes = "Sopra 10000 DPI solo multipli di 50. Il LED sotto il mouse ha colori fissi: niente luci. XM2 8k, OP1 8k e XM2 8k v2 non sono inclusi: protocollo uguale solo per deduzione."
+
+[endgame]
+family = "8k"
+
+[caps]
+dpi_min = 10
+dpi_max = 30000
+dpi_step = 10
+max_stages = 4
+polling = [125, 250, 500, 1000, 2000, 4000, 8000]

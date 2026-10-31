@@ -1,0 +1,22 @@
+# da pulsar-mouse-linux e Pulsar-X3-Web-Config (MIT): famiglia S, feature report da 64 byte. Provato in parte; LED sconosciuto, quindi luci escluse.
+name = "Pulsar Xlite v4 (cavo)"
+vid = 0x3710
+pid = 0x3401
+driver = "pulsar"
+status = "experimental"
+notes = "Si usa sempre il profilo 1. Nessun comando di salvataggio documentato: dopo la prima modifica controlla che DPI e polling restino anche dopo aver scollegato il mouse. Chiudi Pulsar Fusion: quando parte riscrive le sue impostazioni."
+
+[pulsar]
+family = "pulsar_s"
+read_profile = false
+profiles = 6
+led = false
+
+[caps]
+dpi_min = 100
+dpi_max = 32000
+dpi_step = 10
+max_stages = 6
+polling = [125, 250, 500, 1000]
+zones = []
+effects = []

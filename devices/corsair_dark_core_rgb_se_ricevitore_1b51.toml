@@ -1,0 +1,20 @@
+# da ckb-next (GPL-2.0) e corsair-protocol: famiglia NXP. Dopo il cambio di polling il mouse si ricollega.
+name = "Corsair Dark Core RGB SE (ricevitore)"
+vid = 0x1B1C
+pid = 0x1B51
+driver = "corsair"
+status = "experimental"
+notes = "Modello \"a file\": ckb-next non salva sul mouse né DPI né luci. I DPI salvati potrebbero non restare dopo averlo scollegato: controlla e facci sapere."
+
+[corsair]
+family = "nxp"
+stored_zones = 0
+
+[caps]
+dpi_min = 100
+dpi_max = 12000
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = []
+effects = []

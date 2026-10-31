@@ -1,0 +1,19 @@
+# da ckb-next (GPL-2.0) e corsair-protocol: famiglia NXP. Dopo il cambio di polling il mouse si ricollega.
+name = "Corsair Sabre RGB (ottico, CH-9000111)"
+vid = 0x1B1C
+pid = 0x1B32
+driver = "corsair"
+status = "experimental"
+
+[corsair]
+family = "nxp"
+stored_zones = 3
+
+[caps]
+dpi_min = 100
+dpi_max = 6400
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["front", "logo", "wheel"]
+effects = ["static", "off"]

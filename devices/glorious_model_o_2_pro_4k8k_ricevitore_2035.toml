@@ -1,0 +1,20 @@
+# Famiglia GP, mappa core2. Dai fatti della cattura USB di OpenMouse mouse-protocol (AGPL) e da GloriousAutoPollingRate (MIT).
+name = "Glorious Model O 2 PRO 4K/8K (ricevitore)"
+vid = 0x258A
+pid = 0x2035
+driver = "glorious"
+status = "experimental"
+notes = "Il mouse non permette di rileggere le impostazioni: si vede l'ultimo stato scritto da questa app. Ogni scrittura attiva il profilo 1. Luci non supportate: il loro formato su questo modello non è mai stato catturato. Via radio il massimo è 4000 Hz."
+
+[glorious]
+family = "gp"
+link = "dongle"
+map = "core2"
+cable_pid = 0x201B
+
+[caps]
+dpi_min = 100
+dpi_max = 26000
+dpi_step = 50
+max_stages = 6
+polling = [125, 250, 500, 1000, 2000, 4000]

@@ -30,12 +30,6 @@ pub fn apply_state(drv: &mut dyn MouseDriver, current: &MouseState, target: &Mou
             done.push(format!("stadi DPI {:?}, attivo {}", t.stages, t.active + 1));
         }
     }
-    if let Some(hz) = target.polling_hz {
-        if current.polling_hz != Some(hz) {
-            drv.set_polling(hz)?;
-            done.push(format!("polling {hz} Hz"));
-        }
-    }
     for z in &target.zones {
         let cur = current.zones.iter().find(|c| c.zone == z.zone);
         if let Some(e) = &z.effect {
@@ -49,6 +43,13 @@ pub fn apply_state(drv: &mut dyn MouseDriver, current: &MouseState, target: &Mou
                 drv.set_brightness(&z.zone, b)?;
                 done.push(format!("{}: luminosità {}%", z.zone, pct(b)));
             }
+        }
+    }
+    // Il polling per ultimo: su alcuni mouse (Corsair) fa ricollegare il dispositivo.
+    if let Some(hz) = target.polling_hz {
+        if current.polling_hz != Some(hz) {
+            drv.set_polling(hz)?;
+            done.push(format!("polling {hz} Hz"));
         }
     }
     Ok(done)

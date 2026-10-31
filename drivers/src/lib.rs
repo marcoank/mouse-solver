@@ -1,7 +1,18 @@
 pub mod asus;
+pub mod compx;
+pub mod coolermaster;
+pub mod endgame;
+pub mod glorious;
+pub mod hyperx;
+pub mod pulsar;
+pub mod roccat_new;
+pub mod corsair;
+pub mod hid;
 pub mod logitech;
 pub mod measure;
 pub mod razer;
+pub mod roccat;
+pub mod sinowealth;
 pub mod steelseries;
 pub mod zowie;
 
@@ -38,6 +49,16 @@ pub const GAMING_VIDS: &[(u16, &str)] = &[
     (0x1038, "SteelSeries"),
     (0x046D, "Logitech"),
     (0x1B1C, "Corsair"),
+    (0x1E7D, "Roccat"),
+    (0x258A, "SinoWealth"),
+    (0x3794, "Glorious"),
+    (0x093A, "Pixart (Glorious)"),
+    (0x3554, "CompX (Pulsar/Lamzu)"),
+    (0x3710, "Pulsar"),
+    (0x3367, "Endgame Gear"),
+    (0x0951, "HyperX"),
+    (0x03F0, "HP/HyperX"),
+    (0x2516, "Cooler Master"),
     // Zowie: VID da verificare col mouse di test (Fase 5).
 ];
 
@@ -90,6 +111,16 @@ pub fn open(api: &HidApi, found: &Found) -> Result<Box<dyn MouseDriver>> {
         "steelseries" => Ok(Box::new(steelseries::SteelSeries::open(api, spec, vid, pid)?)),
         "zowie" => Ok(Box::new(zowie::Driverless::new(spec, vid, pid))),
         "logitech" => Ok(Box::new(logitech::Logitech::open(api, spec, vid, pid)?)),
+        "sinowealth" => Ok(Box::new(sinowealth::SinoWealth::open(api, spec, vid, pid)?)),
+        "roccat" => Ok(Box::new(roccat::Roccat::open(api, spec, vid, pid)?)),
+        "corsair" => Ok(Box::new(corsair::Corsair::open(api, spec, vid, pid)?)),
+        "compx" => compx::open(api, spec, vid, pid),
+        "coolermaster" => coolermaster::open(api, spec, vid, pid),
+        "endgame" => endgame::open(api, spec, vid, pid),
+        "glorious" => glorious::open(api, spec, vid, pid),
+        "hyperx" => hyperx::open(api, spec, vid, pid),
+        "pulsar" => pulsar::open(api, spec, vid, pid),
+        "roccat_new" => roccat_new::open(api, spec, vid, pid),
         other => bail!("driver '{other}' non ancora implementato"),
     }
 }
@@ -130,6 +161,16 @@ mod tests {
                 "asus" => d.section::<crate::asus::AsusConfig>("asus").map(|_| ()),
                 "steelseries" => d.section::<crate::steelseries::SteelConfig>("steelseries").map(|_| ()),
                 "zowie" | "logitech" => Ok(()),
+                "sinowealth" => d.section::<crate::sinowealth::SinoConfig>("sinowealth").map(|_| ()),
+                "roccat" => d.section::<crate::roccat::RoccatConfig>("roccat").map(|_| ()),
+                "corsair" => d.section::<crate::corsair::CorsairConfig>("corsair").map(|_| ()),
+                "compx" => crate::compx::check_config(d),
+                "coolermaster" => crate::coolermaster::check_config(d),
+                "endgame" => crate::endgame::check_config(d),
+                "glorious" => crate::glorious::check_config(d),
+                "hyperx" => crate::hyperx::check_config(d),
+                "pulsar" => crate::pulsar::check_config(d),
+                "roccat_new" => crate::roccat_new::check_config(d),
                 other => Err(anyhow::anyhow!("driver sconosciuto {other}")),
             };
             if let Err(e) = res {

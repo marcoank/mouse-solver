@@ -1,0 +1,22 @@
+# da libratbag data/devices (MIT). Il modello si riconosce dalla versione firmware.
+name = "SinoWealth 258a:0051"
+vid = 0x258A
+pid = 0x0051
+driver = "sinowealth"
+status = "experimental"
+notes = "Firmware non in tabella = sola lettura, per sicurezza. Chiudi il software del produttore durante l'uso."
+
+[[sinowealth.firmware]]
+version = "2642"
+name = "T-Dagger Imperial T-TGM310"
+led = "rgb"
+config_size = 123
+
+[caps]
+dpi_min = 100
+dpi_max = 12000      # il valore vero dipende dal sensore e viene letto dal mouse
+dpi_step = 100
+max_stages = 8
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

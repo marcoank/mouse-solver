@@ -1,0 +1,19 @@
+# da lamzuctl (MIT) e All-in-One-Mouse-Driver (GPL-3.0, solo i fatti): famiglia Aurora, feature report da 64 byte sull'interfaccia 2. PID dalla configurazione del programma Lamzu. Letture provate solo su Maya X 8K (373E:001E); cambio polling da catture su Maya X 8K e Inca 8K (37B0:0010).
+name = "Lamzu Maya (ricevitore 1K)"
+vid = 0x37B0
+pid = 0x0013
+driver = "pulsar"
+status = "experimental"
+notes = "Si possono cambiare polling e stadio attivo. I valori DPI si leggono ma non si scrivono (il comando non è mai stato provato) e le luci non sono gestite. Non è noto se le impostazioni restino dopo lo spegnimento: controlla. Chiudi il programma Lamzu prima di usare questo. Il mouse deve essere acceso e sveglio."
+
+[pulsar]
+family = "lamzu_aurora"
+
+[caps]
+dpi_min = 50
+dpi_max = 42000
+dpi_step = 1
+max_stages = 6
+polling = [125, 250, 500, 1000]
+zones = []
+effects = []

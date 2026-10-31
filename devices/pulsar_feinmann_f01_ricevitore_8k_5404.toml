@@ -1,0 +1,23 @@
+# da pulsar-mouse-linux e Pulsar-X3-Web-Config (MIT): famiglia S, feature report da 64 byte. Provato su hardware (pulsar-mouse-linux); servono 300 ms dopo ogni scrittura.
+name = "Pulsar Feinmann F01 (ricevitore 8K)"
+vid = 0x3710
+pid = 0x5404
+driver = "pulsar"
+status = "experimental"
+notes = "Il mouse deve essere acceso e sveglio. La zona dpi è il LED che indica lo stadio DPI: un colore unico viene scritto su tutti gli stadi. Nessun comando di salvataggio documentato: dopo la prima modifica controlla che DPI e polling restino anche dopo aver scollegato il mouse. Chiudi Pulsar Fusion: quando parte riscrive le sue impostazioni."
+
+[pulsar]
+family = "pulsar_s"
+read_profile = true
+profiles = 6
+write_gap_ms = 300
+led = true
+
+[caps]
+dpi_min = 50
+dpi_max = 32000
+dpi_step = 10
+max_stages = 6
+polling = [125, 250, 500, 1000, 2000, 4000, 8000]
+zones = ["dpi"]
+effects = ["static", "breathing", "off"]

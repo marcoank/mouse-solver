@@ -1,0 +1,20 @@
+# DPI/stadio/polling da roccat-konepro-linux (nessuna licenza: solo i fatti), luci e commit da OpenRGB.
+name = "Roccat Kone Pro"
+vid = 0x1E7D
+pid = 0x2C88
+driver = "roccat_new"
+status = "experimental"
+notes = "Sempre 5 stadi DPI (scrivendo i DPI vengono riattivati tutti e 5). I due LED (tasto sinistro e destro) prendono lo stesso colore."
+
+[roccat_new]
+family = "kone_pro"
+
+[caps]
+dpi_min = 50
+dpi_max = 19000
+dpi_step = 50
+min_stages = 5
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "wave", "off"]

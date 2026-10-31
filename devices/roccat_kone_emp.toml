@@ -1,0 +1,21 @@
+# da libratbag (MIT): driver-roccat-kone-emp.c. I 4 LED hanno lo stesso effetto.
+name = "Roccat Kone EMP"
+vid = 0x1E7D
+pid = 0x2E24
+driver = "roccat"
+status = "experimental"
+
+[roccat]
+settings_len = 41
+layout = "emp"
+checksum = "sum"
+dpi_encoding = "minus100"
+
+[caps]
+dpi_min = 100
+dpi_max = 12000
+dpi_step = 100
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]

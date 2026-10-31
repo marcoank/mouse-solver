@@ -1,0 +1,20 @@
+# da Kone-XP-Air-Manager-MacOS (Unlicense): ricavato dal modulo di Swarm II e provato col ricevitore.
+name = "Turtle Beach Roccat Kone XP Air"
+vid = 0x10F5
+pid = 0x5017
+aliases = [[0x10F5, 0x5015]]
+driver = "roccat_new"
+status = "experimental"
+notes = "Provato dalla fonte solo tramite ricevitore (10f5:5017); via cavo (10f5:5015) è lo stesso protocollo ma non è mai stato provato. Nessun effetto 'spento': usa la luminosità 0. I 7 LED prendono lo stesso colore."
+
+[roccat_new]
+family = "kone_xp_air"
+
+[caps]
+dpi_min = 50
+dpi_max = 19000
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "wave"]

@@ -1,0 +1,20 @@
+# da libratbag (MIT): driver-roccat-kone-pure.c. Il checksum viene ricalcolato solo se quello letto è valido.
+name = "Roccat Kone Pure"
+vid = 0x1E7D
+pid = 0x2DC2
+aliases = [[0x1E7D, 0x2DBE], [0x1E7D, 0x2DCB]]
+driver = "roccat"
+status = "experimental"
+
+[roccat]
+settings_len = 31
+layout = "xtd"
+checksum = "auto"
+dpi_encoding = "div50"
+
+[caps]
+dpi_min = 200
+dpi_max = 5000
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]

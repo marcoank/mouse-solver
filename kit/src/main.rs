@@ -1,6 +1,12 @@
-//! Kit di cattura, Modalità A: sola lettura, nessuna scrittura sul mouse.
-//! Raccoglie VID/PID, interfacce HID e descrittori dei mouse collegati e, se la marca
-//! è nota, le risposte ai comandi di lettura. Produce un file JSON da mandarci.
+//! Kit per raccogliere informazioni sui mouse che non supportiamo ancora.
+//!
+//! Modalità A (`info`, predefinita): sola lettura, nessuna scrittura sul mouse. Raccoglie VID/PID,
+//! interfacce HID e descrittori e, se la marca è nota, le risposte ai comandi di lettura.
+//! Modalità B (`cattura`): registra con USBPcap il traffico del software ufficiale mentre l'utente
+//! cambia le impostazioni passo per passo (vedi capture.rs).
+
+mod capture;
+mod pcap;
 
 use anyhow::Result;
 use mousecfg_core::{vendor, Db};
@@ -8,17 +14,40 @@ use mousecfg_drivers::{asus, hidapi::HidApi, logitech, open, razer, scan, vendor
 use serde_json::{json, Value};
 
 fn main() {
-    println!("mouse-cfg-kit {} - raccolta informazioni (SOLO LETTURA)\n", env!("CARGO_PKG_VERSION"));
-    println!("Questo programma non modifica il mouse. Legge solo come è fatto e come è impostato.");
-    println!("Il file prodotto non contiene seriali, nomi utente o altro dal tuo PC.\n");
-    if let Err(e) = run() {
-        eprintln!("Errore: {e:#}");
+    println!("mouse-cfg-kit {}\n", env!("CARGO_PKG_VERSION"));
+    let mode = match std::env::args().nth(1).as_deref() {
+        Some("info") => "1".to_string(),
+        Some("cattura") => "2".to_string(),
+        _ => {
+            println!("1  Raccolta informazioni (1 minuto, sola lettura, consigliata)");
+            println!("2  Cattura guidata col software ufficiale (10 minuti, serve USBPcap)\n");
+            print!("Scelta [1]: ");
+            let _ = std::io::Write::flush(&mut std::io::stdout());
+            let mut s = String::new();
+            let _ = std::io::stdin().read_line(&mut s);
+            s.trim().to_string()
+        }
+    };
+    let res = if mode == "2" { capture_mode() } else { run() };
+    if let Err(e) = res {
+        eprintln!("\nErrore: {e:#}");
     }
     println!("\nPremi Invio per chiudere.");
     let _ = std::io::stdin().read_line(&mut String::new());
 }
 
+fn capture_mode() -> Result<()> {
+    let found = scan(&HidApi::new()?, &Db::load()?);
+    if found.is_empty() {
+        anyhow::bail!("nessun mouse trovato");
+    }
+    capture::run(&found)
+}
+
 fn run() -> Result<()> {
+    println!("Questo programma non modifica il mouse. Legge solo come è fatto e come è impostato.");
+    println!("Il file prodotto non contiene seriali, nomi utente o altro dal tuo PC.
+");
     let db = Db::load()?;
     let api = HidApi::new()?;
     let found = scan(&api, &db);
@@ -37,16 +66,32 @@ fn run() -> Result<()> {
             .device_list()
             .filter(|d| d.vendor_id() == f.vid && d.product_id() == f.pid)
             .map(|d| {
-                let descriptor = d.open_device(&api).ok().and_then(|dev| {
+                let dev = d.open_device(&api).ok();
+                let raw = dev.as_ref().and_then(|dev| {
                     let mut buf = [0u8; 4096];
-                    dev.get_report_descriptor(&mut buf).ok().map(|n| hex(&buf[..n]))
+                    dev.get_report_descriptor(&mut buf).ok().map(|n| buf[..n].to_vec())
                 });
+                // Solo per le collezioni del produttore e solo per i mouse che non conosciamo:
+                // leggo (GET_FEATURE, sola lettura) ogni feature report dichiarato nel descrittore.
+                let features = match (&dev, &raw) {
+                    (Some(dev), Some(raw)) if f.spec.is_none() && d.usage_page() >= 0xFF00 => mousecfg_drivers::hid::feature_reports(raw)
+                        .into_iter()
+                        .map(|(id, len)| {
+                            let mut buf = vec![0u8; len + 1];
+                            buf[0] = id;
+                            let v = dev.get_feature_report(&mut buf).map(|n| hex(&buf[..n])).unwrap_or_else(|e| format!("errore: {e}"));
+                            (format!("0x{id:02x} ({len} byte)"), json!(v))
+                        })
+                        .collect::<serde_json::Map<_, _>>(),
+                    _ => Default::default(),
+                };
                 json!({
                     "interface": d.interface_number(),
                     "usage_page": format!("0x{:04x}", d.usage_page()),
                     "usage": format!("0x{:02x}", d.usage()),
                     "release": format!("0x{:04x}", d.release_number()),
-                    "report_descriptor": descriptor,
+                    "report_descriptor": raw.as_deref().map(hex),
+                    "feature_reports": features,
                 })
             })
             .collect();

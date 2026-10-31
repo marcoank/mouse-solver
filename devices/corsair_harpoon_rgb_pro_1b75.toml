@@ -1,0 +1,19 @@
+# da ckb-next (GPL-2.0) e corsair-protocol: famiglia NXP. Dopo il cambio di polling il mouse si ricollega.
+name = "Corsair Harpoon RGB Pro"
+vid = 0x1B1C
+pid = 0x1B75
+driver = "corsair"
+status = "experimental"
+
+[corsair]
+family = "nxp"
+stored_zones = 2
+
+[caps]
+dpi_min = 100
+dpi_max = 12000
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["front", "logo"]
+effects = ["static", "off"]

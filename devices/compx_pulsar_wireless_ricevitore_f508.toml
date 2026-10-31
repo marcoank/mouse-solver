@@ -1,0 +1,25 @@
+# Protocollo CompX/Nordic (famiglia N) da pulsar-mouse-linux e python-pulsar-mouse-tool (MIT).
+# Lo stesso PID è usato da tutti i modelli "Fusion Wireless" su VID 0x3554.
+name = "Pulsar X2V2 / Xlite V3 / X2A Wireless (ricevitore 1K)"
+vid = 0x3554
+pid = 0xf508
+driver = "compx"
+status = "experimental"
+notes = "Si modifica solo il profilo attivo. DPI oltre 10000 codificati come sul sensore 3395 (X2V2 Mini): sui modelli più vecchi col sensore 3370 tieniti sotto 10000. La spia DPI non c'è su tutti i modelli."
+
+[compx]
+transport = "output"
+reply_id = 8
+interface = 1
+write_stage_count = true
+dpi_led = true
+
+[caps]
+dpi_min = 50
+dpi_max = 26000
+dpi_step = 50
+min_stages = 1
+max_stages = 4
+polling = [125, 250, 500, 1000]
+zones = ["dpi"]
+effects = ["static", "breathing", "off"]

@@ -1,0 +1,21 @@
+# da OpenRGB (luci, polling, commit) e kone-xp-configurator (MIT, trasporto).
+name = "Roccat Kone XP"
+vid = 0x1E7D
+pid = 0x2C8B
+driver = "roccat_new"
+status = "experimental"
+notes = "DPI in sola lettura: la codifica (DPI/50) è solo dedotta, nessuna fonte la scrive. Si possono cambiare polling e luci. I 20 LED prendono lo stesso colore."
+
+[roccat_new]
+family = "kone_xp"
+
+[caps]
+dpi_min = 50
+dpi_max = 19000
+dpi_step = 50
+min_stages = 5
+max_stages = 5
+active_stage_settable = false
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "wave", "off"]

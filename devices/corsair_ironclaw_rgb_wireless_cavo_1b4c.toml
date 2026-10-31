@@ -1,0 +1,19 @@
+# da ckb-next (GPL-2.0) e OpenRGB: famiglia Bragi. Solo il polling è documentato.
+name = "Corsair Ironclaw RGB Wireless (cavo)"
+vid = 0x1B1C
+pid = 0x1B4C
+driver = "corsair"
+status = "experimental"
+notes = "Su questa famiglia Corsair si può impostare solo il polling: stadi DPI e luci salvate non sono documentati. Serve una cattura col kit per aggiungerli."
+
+[corsair]
+family = "bragi"
+bragi_prefix = 0x08
+
+[caps]
+dpi_min = 0
+dpi_max = 0
+dpi_step = 1
+min_stages = 0
+max_stages = 0
+polling = [125, 250, 500, 1000]

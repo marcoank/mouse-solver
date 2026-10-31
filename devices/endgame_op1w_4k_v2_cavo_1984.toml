@@ -1,0 +1,17 @@
+# da vole (MIT, provato sul mouse). OP1w 4k v2, collegato col cavo. 125 Hz = "Office Mode".
+name = "Endgame Gear OP1w 4k v2 (cavo)"
+vid = 0x3367
+pid = 0x1984
+driver = "endgame"
+status = "experimental"
+notes = "Via cavo il mouse va sempre a 1000 Hz: il polling impostato vale quando usi il ricevitore. Sopra 10000 DPI solo multipli di 50. Il LED ha colori fissi: niente luci."
+
+[endgame]
+family = "4k"
+
+[caps]
+dpi_min = 10
+dpi_max = 30000
+dpi_step = 10
+max_stages = 4
+polling = [125, 1000, 2000, 4000]

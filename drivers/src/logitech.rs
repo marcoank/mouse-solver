@@ -1,13 +1,17 @@
-//! Driver Logitech HID++ 2.0, per ora SOLO LETTURA. Protocollo reimplementato leggendo libratbag
+//! Driver Logitech HID++ 2.0. Protocollo reimplementato leggendo libratbag
 //! (src/hidpp20.c, licenza MIT): nessun codice copiato.
 //!
 //! HID++ 2.0 è autodescrittivo: si chiede al mouse l'indice di ogni "feature" (0x2201 DPI,
 //! 0x8060 polling, 0x8100 profili onboard...) e si usano solo quelle presenti. Così un solo driver
 //! copre quasi tutti i Logitech G recenti, col cavo o col ricevitore Lightspeed.
 //!
-//! Scrittura: sui Logitech DPI e polling scritti con 0x2201/0x8060 si perdono allo scollegamento
-//! se il mouse usa i profili onboard. Per salvarli davvero bisogna scrivere il profilo nella
-//! memoria del mouse (0x8100): da fare quando avremo un Logitech su cui provarlo.
+//! Scrittura: DPI, polling e luci restano nel mouse solo se scritti nel profilo onboard (feature
+//! 0x8100, settori da 256 byte con CRC). A differenza di libratbag, che ricostruisce i profili da
+//! zero e cancella nome, G-shift e altre impostazioni di G HUB, qui si fa lettura-modifica-scrittura:
+//! si cambiano solo i byte di DPI, polling e LED del profilo attivo, si ricalcola il CRC e si
+//! rilegge il settore per verifica. Si scrivono solo il settore del profilo utente (1..N) e, se
+//! serve, la directory (0); mai la ROM (0x01xx). Senza 0x8100 o con settori diversi da 256 byte
+//! il mouse resta in sola lettura.
 
 use anyhow::{bail, Context, Result};
 use hidapi::{HidApi, HidDevice};
@@ -25,7 +29,8 @@ const ADJ_DPI: u16 = 0x2201;
 const REPORT_RATE: u16 = 0x8060;
 const ONBOARD: u16 = 0x8100;
 
-/// (feature, funzione) ammesse: solo letture.
+/// (feature, funzione) ammesse. Le scritture in memoria passano solo da `write_sector`,
+/// che controlla il numero di settore.
 const ALLOWED: &[(u16, u8)] = &[
     (ROOT, 0),        // getFeature
     (ROOT, 1),        // getProtocolVersion (ping)
@@ -38,9 +43,45 @@ const ALLOWED: &[(u16, u8)] = &[
     (ADJ_DPI, 2),     // getSensorDpi
     (REPORT_RATE, 0), // getReportRateList
     (REPORT_RATE, 1), // getReportRate
+    (ONBOARD, 0),     // getProfilesDescr
+    (ONBOARD, 1),     // setOnboardMode
     (ONBOARD, 2),     // getOnboardMode
     (ONBOARD, 4),     // getCurrentProfile
+    (ONBOARD, 5),     // memoryRead
+    (ONBOARD, 6),     // memoryAddrWrite
+    (ONBOARD, 7),     // memoryWrite
+    (ONBOARD, 8),     // memoryWriteEnd
+    (ONBOARD, 0xB),   // getCurrentDpiIndex
+    (ONBOARD, 0xC),   // setCurrentDpiIndex
 ];
+
+const SECTOR: usize = 256;
+const LED_MODES: [u8; 8] = [0x00, 0x01, 0x03, 0x04, 0x05, 0x0A, 0x0B, 0x0C];
+
+/// CRC-16/CCITT-FALSE (poly 0x1021, init 0xFFFF), come nei settori dei profili Logitech.
+pub fn crc_ccitt(data: &[u8]) -> u16 {
+    let mut crc: u16 = 0xFFFF;
+    for &b in data {
+        crc ^= (b as u16) << 8;
+        for _ in 0..8 {
+            crc = if crc & 0x8000 != 0 { (crc << 1) ^ 0x1021 } else { crc << 1 };
+        }
+    }
+    crc
+}
+
+/// Informazioni sui profili onboard (getProfilesDescr) e posizione del profilo attivo.
+#[derive(Debug, Clone)]
+struct Onboard {
+    profile_count: u8,
+    sector_count: u8,
+    /// Indice (da 0) del profilo attivo.
+    active: usize,
+    /// Directory valida (CRC giusto) già scritta da un software.
+    dir_valid: bool,
+    /// Settore da cui leggere il profilo attivo (utente o ROM se non ancora scritto).
+    source: u16,
+}
 
 pub struct Hidpp {
     dev: HidDevice,
@@ -105,9 +146,78 @@ impl Hidpp {
     }
 }
 
+impl Hidpp {
+    fn read_sector(&mut self, sector: u16) -> Result<Vec<u8>> {
+        let mut out = vec![0u8; SECTOR];
+        for off in (0..SECTOR).step_by(16) {
+            let [sh, sl] = sector.to_be_bytes();
+            let [oh, ol] = (off as u16).to_be_bytes();
+            let r = self.call(ONBOARD, 5, &[sh, sl, oh, ol])?;
+            out[off..off + 16].copy_from_slice(&r[4..20]);
+        }
+        Ok(out)
+    }
+
+    /// Scrive un settore intero. Ammessi solo la directory (0) e i profili utente (1..=profili).
+    fn write_sector(&mut self, sector: u16, data: &[u8], profile_count: u8) -> Result<()> {
+        if sector > profile_count as u16 || data.len() != SECTOR {
+            bail!("scrittura nel settore 0x{sector:04x} bloccata: non è un profilo utente");
+        }
+        let [sh, sl] = sector.to_be_bytes();
+        let [ch, cl] = (SECTOR as u16).to_be_bytes();
+        self.call(ONBOARD, 6, &[sh, sl, 0, 0, ch, cl])?;
+        for chunk in data.chunks(16) {
+            self.call(ONBOARD, 7, chunk)?;
+        }
+        self.call(ONBOARD, 8, &[])?;
+        Ok(())
+    }
+
+    fn onboard(&mut self) -> Result<Onboard> {
+        let d = self.call(ONBOARD, 0, &[])?;
+        let p = &d[4..];
+        let sector_size = u16::from_be_bytes([p[7], p[8]]) as usize;
+        if p[0] != 0x01 || !(0x01..=0x05).contains(&p[1]) || p[2] != 0x01 || sector_size != SECTOR || p[3] == 0 {
+            bail!(
+                "formato dei profili onboard non gestito (memoria {:02x}, profilo {:02x}, settore {sector_size} byte)",
+                p[0],
+                p[1]
+            );
+        }
+        let (profile_count, rom_count, sector_count) = (p[3], p[4], p[6]);
+        let dir = self.read_sector(0x0000).ok();
+        let dir_valid = dir.as_ref().is_some_and(|d| crc_ccitt(&d[..SECTOR - 2]) == u16::from_be_bytes([d[SECTOR - 2], d[SECTOR - 1]]));
+
+        // Profilo attivo: getCurrentProfile restituisce l'indirizzo del settore (o un indice).
+        let cur = self.call(ONBOARD, 4, &[])?;
+        let addr = u16::from_be_bytes([cur[4], cur[5]]);
+        let mut active = (addr & 0xFF).saturating_sub(1) as usize;
+        if dir_valid {
+            if let Some(i) = dir.as_ref().unwrap().chunks(4).take(profile_count as usize).position(|e| u16::from_be_bytes([e[0], e[1]]) == addr) {
+                active = i;
+            }
+        }
+        let active = active.min(profile_count as usize - 1);
+        let rom = 0x0100 + if (active as u8) < rom_count { active as u16 + 1 } else { 1 };
+        let source = if dir_valid {
+            let user = active as u16 + 1;
+            match self.read_sector(user) {
+                Ok(s) if crc_ccitt(&s[..SECTOR - 2]) == u16::from_be_bytes([s[SECTOR - 2], s[SECTOR - 1]]) => user,
+                _ => rom,
+            }
+        } else {
+            rom
+        };
+        Ok(Onboard { profile_count, sector_count, active, dir_valid, source })
+    }
+}
+
 pub struct Logitech {
     hidpp: Hidpp,
     spec: DeviceSpec,
+    onboard: Option<Onboard>,
+    /// Perché il mouse è in sola lettura (se lo è).
+    read_only: Option<String>,
 }
 
 impl Logitech {
@@ -127,7 +237,14 @@ impl Logitech {
                 if h.raw(0, 1, &[0, 0, 0x5A]).is_ok_and(|r| r[6] == 0x5A) && h.feature(ADJ_DPI).ok().flatten().is_some() {
                     let mut spec = spec.clone();
                     (spec.vid, spec.pid) = (vid, pid);
-                    let mut l = Logitech { hidpp: h, spec };
+                    let mut l = Logitech { hidpp: h, spec, onboard: None, read_only: None };
+                    match l.hidpp.feature(ONBOARD) {
+                        Ok(Some(_)) => match l.hidpp.onboard() {
+                            Ok(o) => l.onboard = Some(o),
+                            Err(e) => l.read_only = Some(format!("{e:#}")),
+                        },
+                        _ => l.read_only = Some("il mouse non ha profili onboard (0x8100)".into()),
+                    }
                     l.fill_caps();
                     return Ok(l);
                 }
@@ -144,7 +261,21 @@ impl Logitech {
             caps.dpi_values = list;
         }
         if let Ok(rates) = self.rate_list() {
-            self.spec.caps.polling = rates;
+            // nel profilo il polling è in millisecondi interi: niente oltre 1000 Hz
+            self.spec.caps.polling = rates.into_iter().filter(|&hz| hz <= 1000).collect();
+        }
+        if self.onboard.is_some() {
+            self.spec.caps.min_stages = 1;
+            self.spec.caps.max_stages = 5;
+            self.spec.caps.active_stage_settable = true;
+            if let Ok(sec) = self.profile() {
+                self.spec.caps.zones = (0..2).filter(|&i| LED_MODES.contains(&sec[208 + 11 * i])).map(|i| format!("led{}", i + 1)).collect();
+                self.spec.caps.effects = if self.spec.caps.zones.is_empty() {
+                    Vec::new()
+                } else {
+                    ["static", "breathing", "spectrum", "off"].map(String::from).to_vec()
+                };
+            }
         }
         if let Ok(name) = self.name() {
             self.spec.name = format!("Logitech {}", name.trim_start_matches("Logitech").trim());
@@ -195,6 +326,73 @@ impl Logitech {
     }
 }
 
+impl Logitech {
+    fn profile(&mut self) -> Result<Vec<u8>> {
+        let o = self.onboard.clone().context("profili onboard non disponibili")?;
+        self.hidpp.read_sector(o.source)
+    }
+
+    fn led_offset(zone: &str) -> Result<usize> {
+        match zone {
+            "led1" => Ok(208),
+            "led2" => Ok(219),
+            _ => bail!("zona '{zone}' sconosciuta"),
+        }
+    }
+
+    /// Lettura-modifica-scrittura del profilo attivo, con CRC e verifica.
+    fn modify(&mut self, change: impl FnOnce(&mut [u8]) -> Result<()>) -> Result<()> {
+        if let Some(why) = &self.read_only {
+            bail!("su questo mouse la scrittura non è possibile: {why}");
+        }
+        let o = self.onboard.clone().context("profili onboard non disponibili")?;
+        if self.hidpp.call(ONBOARD, 2, &[])?[4] != 0x01 {
+            // I profili salvati valgono solo in modalità onboard (libratbag fa lo stesso).
+            self.hidpp.call(ONBOARD, 1, &[0x01])?;
+        }
+        let mut sec = self.hidpp.read_sector(o.source)?;
+        change(&mut sec)?;
+        let crc = crc_ccitt(&sec[..SECTOR - 2]);
+        sec[SECTOR - 2..].copy_from_slice(&crc.to_be_bytes());
+        let target = o.active as u16 + 1;
+        if o.sector_count > 0 && target >= o.sector_count as u16 {
+            bail!("settore {target} fuori dalla memoria del mouse");
+        }
+        self.hidpp.write_sector(target, &sec, o.profile_count)?;
+        if self.hidpp.read_sector(target)? != sec {
+            bail!("verifica fallita: il profilo riletto dal mouse è diverso da quello scritto");
+        }
+        if !o.dir_valid {
+            // Primo salvataggio: la directory elenca i profili utente, attivo solo quello scritto.
+            let mut dir = vec![0xFFu8; SECTOR];
+            for i in 0..o.profile_count as usize {
+                dir[4 * i..4 * i + 4].copy_from_slice(&[0x00, i as u8 + 1, (i == o.active) as u8, 0x00]);
+            }
+            let end = 4 * o.profile_count as usize;
+            dir[end..end + 4].copy_from_slice(&[0xFF, 0xFF, 0x00, 0x00]);
+            let crc = crc_ccitt(&dir[..SECTOR - 2]);
+            dir[SECTOR - 2..].copy_from_slice(&crc.to_be_bytes());
+            self.hidpp.write_sector(0x0000, &dir, o.profile_count)?;
+        }
+        let mut o = o;
+        o.dir_valid = true;
+        o.source = target;
+        self.onboard = Some(o);
+        Ok(())
+    }
+
+    fn decode_led(b: &[u8]) -> Effect {
+        let color = Rgb(b[1], b[2], b[3]);
+        match b[0] {
+            0x00 => Effect::Off,
+            0x01 => Effect::Static { color },
+            0x03 => Effect::Spectrum,
+            0x0A => Effect::Breathing { color },
+            c => Effect::Unknown { code: c },
+        }
+    }
+}
+
 impl MouseDriver for Logitech {
     fn spec(&self) -> &DeviceSpec {
         &self.spec
@@ -216,6 +414,32 @@ impl MouseDriver for Logitech {
     }
 
     fn read_state(&mut self) -> Result<MouseState> {
+        if self.onboard.is_some() {
+            if let Ok(sec) = self.profile() {
+                let slots: Vec<u16> = (0..5).map(|i| u16::from_le_bytes([sec[3 + 2 * i], sec[4 + 2 * i]])).collect();
+                let live = self.hidpp.call(ONBOARD, 0xB, &[]).ok().map(|r| r[4] as usize).unwrap_or(sec[1] as usize);
+                let stages: Vec<u16> = slots.iter().copied().filter(|&d| d != 0).collect();
+                let active = slots.iter().take(live.min(4) + 1).filter(|&&d| d != 0).count().saturating_sub(1);
+                let zones = self
+                    .spec
+                    .caps
+                    .zones
+                    .clone()
+                    .into_iter()
+                    .map(|z| {
+                        let o = Self::led_offset(&z).unwrap();
+                        ZoneState { zone: z, effect: Some(Self::decode_led(&sec[o..o + 11])), brightness: None }
+                    })
+                    .collect();
+                return Ok(MouseState {
+                    dpi: stages.get(active).copied(),
+                    dpi_stages: (!stages.is_empty()).then(|| DpiStages { stages, active }),
+                    polling_hz: (sec[0] > 0).then(|| 1000 / sec[0] as u16),
+                    zones,
+                    cached: false,
+                });
+            }
+        }
         let dpi = self.hidpp.call(ADJ_DPI, 2, &[0]).ok().map(|r| u16::from_be_bytes([r[5], r[6]]));
         let polling_hz = self.hidpp.call(REPORT_RATE, 1, &[0]).ok().map(|r| r[4]).filter(|&ms| ms > 0).map(|ms| 1000 / ms as u16);
         Ok(MouseState {
@@ -227,25 +451,61 @@ impl MouseDriver for Logitech {
         })
     }
 
-    fn set_dpi_stages(&mut self, _: &[u16], _: usize) -> Result<()> {
-        bail!("{}", READ_ONLY)
+    fn set_dpi_stages(&mut self, stages: &[u16], active: usize) -> Result<()> {
+        self.spec.caps.check_dpi_stages(stages, active)?;
+        let stages = stages.to_vec();
+        self.modify(|sec| {
+            for i in 0..5 {
+                let d = stages.get(i).copied().unwrap_or(0);
+                sec[3 + 2 * i..5 + 2 * i].copy_from_slice(&d.to_le_bytes());
+            }
+            sec[1] = active as u8; // stadio predefinito al caricamento del profilo
+            Ok(())
+        })?;
+        // stadio attivo subito, senza aspettare di ricollegare il mouse
+        let _ = self.hidpp.call(ONBOARD, 0xC, &[active as u8]);
+        Ok(())
     }
 
-    fn set_polling(&mut self, _: u16) -> Result<()> {
-        bail!("{}", READ_ONLY)
+    fn set_polling(&mut self, hz: u16) -> Result<()> {
+        self.spec.caps.check_polling(hz)?;
+        if hz > 1000 || 1000 % hz != 0 {
+            bail!("polling {hz} Hz non salvabile nel profilo");
+        }
+        self.modify(|sec| {
+            sec[0] = (1000 / hz) as u8;
+            Ok(())
+        })
     }
 
-    fn set_lighting(&mut self, _: &str, _: &Effect) -> Result<()> {
-        bail!("{}", READ_ONLY)
+    fn set_lighting(&mut self, zone: &str, effect: &Effect) -> Result<()> {
+        self.spec.caps.check_effect(zone, effect)?;
+        let o = Self::led_offset(zone)?;
+        let mut led = [0u8; 11];
+        match *effect {
+            Effect::Off => {}
+            Effect::Static { color } => led[..4].copy_from_slice(&[0x01, color.0, color.1, color.2]),
+            Effect::Breathing { color } => {
+                led[..4].copy_from_slice(&[0x0A, color.0, color.1, color.2]);
+                led[4..6].copy_from_slice(&4000u16.to_be_bytes()); // periodo in ms
+            }
+            Effect::Spectrum => {
+                led[0] = 0x03;
+                led[6..8].copy_from_slice(&10000u16.to_be_bytes());
+            }
+            ref e => bail!("effetto '{}' non gestito sui Logitech", e.name()),
+        }
+        self.modify(|sec| {
+            sec[o..o + 11].copy_from_slice(&led);
+            sec[o + 22..o + 33].copy_from_slice(&led); // copia per la modalità G-shift, come libratbag
+            Ok(())
+        })
     }
 
     fn set_brightness(&mut self, _: &str, _: u8) -> Result<()> {
-        bail!("{}", READ_ONLY)
+        bail!("luminosità non ancora gestita sui Logitech: usa un colore più scuro")
     }
 }
-
-const READ_ONLY: &str = "sui Logitech per ora mostriamo solo le impostazioni: la scrittura nei profili \
-del mouse arriverà quando potremo provarla su un mouse vero";
 
 /// Probe di sola lettura per il kit: elenco delle feature HID++ presenti (utile per il reverse engineering).
 pub fn probe(api: &HidApi, vid: u16, pid: u16) -> serde_json::Value {
@@ -277,8 +537,22 @@ pub fn probe(api: &HidApi, vid: u16, pid: u16) -> serde_json::Value {
                 "features": feats,
                 "dpi_range": [l.spec.caps.dpi_min, l.spec.caps.dpi_max, l.spec.caps.dpi_step],
                 "polling": l.spec.caps.polling,
+                "onboard": l.onboard.as_ref().map(|o| format!("{o:?}")),
+                "read_only": l.read_only,
                 "state": l.read_state().ok(),
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::crc_ccitt;
+
+    #[test]
+    fn crc_matches_libratbag_vectors() {
+        assert_eq!(crc_ccitt(b"123456789"), 0x29B1);
+        assert_eq!(crc_ccitt(&[0xFF; 254]), 0x0202);
+        assert_eq!(crc_ccitt(&[0x00; 254]), 0x592D);
     }
 }

@@ -1,0 +1,20 @@
+# da macOS-Kova-Configurator (MIT, catture di un mouse vero) + schema del Kova 2016 di roccat-tools.
+name = "Roccat Kova AIMO"
+vid = 0x1E7D
+pid = 0x2CF1
+aliases = [[0x1E7D, 0x2CF3]]
+driver = "roccat_new"
+status = "experimental"
+notes = "DPI, stadio attivo e polling confermati da catture reali. Il significato dei byte degli effetti luce è dedotto dal Kova 2016: se le luci non fanno quello che chiedi, il resto non ne risente. Nessuna luminosità."
+
+[roccat_new]
+family = "kova_aimo"
+
+[caps]
+dpi_min = 100
+dpi_max = 7000
+dpi_step = 50
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["mouse"]
+effects = ["static", "breathing", "spectrum", "off"]
