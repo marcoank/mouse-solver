@@ -2,7 +2,7 @@
 
 name = "Razer DeathAdder V3 Pro (Wired)"
 vid = 0x1532
-pid = 0x00C2
+pid = 0x00B6
 driver = "razer"
 status = "experimental"
 

@@ -2,7 +2,7 @@
 
 name = "ROG Gladius II Origin"
 vid = 0x0B05
-pid = 0x1877
+pid = 0x1845
 driver = "asus"
 status = "experimental"
 

@@ -266,7 +266,10 @@ def main():
     for pid, group in sorted(by_pid.items()):
         m = merge(group)
         slug = re.sub(r"[^a-z0-9]+", "_", m["name"].lower()).strip("_").removeprefix("rog_")
-        (devdir / f"asus_{slug}.toml").write_text(toml(m, [g["name"] for g in group]), encoding="utf-8")
+        path = devdir / f"asus_{slug}.toml"
+        if path.exists():  # stesso nome, PID diverso
+            path = devdir / f"asus_{slug}_{pid:04x}.toml"
+        path.write_text(toml(m, [g["name"] for g in group]), encoding="utf-8")
         written += 1
     print(f"Scritti {written} file ASUS da {sum(len(g) for g in by_pid.values())} modelli.")
 

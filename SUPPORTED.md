@@ -2,7 +2,7 @@
 
 Generato da `tools/update_devices.py` dai file in `devices/`. Non modificare a mano.
 
-**207 file modello**: 1 verificati su mouse reale, 0 provati da altri, 206 sperimentali (protocollo preso da progetti open source, mai provato da noi).
+**210 file modello**: 1 verificati su mouse reale, 0 provati da altri, 209 sperimentali (protocollo preso da progetti open source, mai provato da noi).
 
 | Mouse | Stato | Driver | VID:PID | DPI | Polling (Hz) | Zone luci |
 |---|---|---|---|---|---|---|
@@ -14,6 +14,7 @@ Generato da `tools/update_devices.py` dai file in `devices/`. Non modificare a m
 | ROG Chakram X (Wired) | experimental | asus | 0b05:1a18 | 100-36000 (4 stadi) | 250/500/1000/2000/4000/8000 | logo, scroll, underglow |
 | ROG Chakram X (Wireless) | experimental | asus | 0b05:1a1a | 100-36000 (4 stadi) | 250/500/1000 | logo, scroll, underglow |
 | ROG Gladius II Core | experimental | asus | 0b05:18dd | 100-6200 (4 stadi) | 125/250/500/1000 | - |
+| ROG Gladius II Origin | experimental | asus | 0b05:1845 | 100-12000 (2 stadi) | - | - |
 | ROG Gladius II Origin | experimental | asus | 0b05:1877 | 100-12000 (2 stadi) | - | - |
 | ROG Gladius II Origin COD | experimental | asus | 0b05:18b1 | 100-12000 (2 stadi) | - | - |
 | ROG Gladius II PNK LTD | experimental | asus | 0b05:18cd | 100-12000 (2 stadi) | - | - |
@@ -113,7 +114,9 @@ Generato da `tools/update_devices.py` dai file in `devices/`. Non modificare a m
 | Razer DeathAdder V3 | experimental | razer | 1532:00b2 | 100-30000 (5 stadi) | 125/500/1000/2000/4000/8000 | - |
 | Razer DeathAdder V3 HyperSpeed (Wired) | experimental | razer | 1532:00c4 | 100-26000 (5 stadi) | 125/500/1000 | - |
 | Razer DeathAdder V3 HyperSpeed (Wireless) | experimental | razer | 1532:00c5 | 100-26000 (5 stadi) | 125/500/1000 | - |
+| Razer DeathAdder V3 Pro (Wired) | experimental | razer | 1532:00b6 | 100-35000 (5 stadi) | 125/500/1000 | - |
 | Razer DeathAdder V3 Pro (Wired) | experimental | razer | 1532:00c2 | 100-35000 (5 stadi) | 125/500/1000 | - |
+| Razer DeathAdder V3 Pro (Wireless) | experimental | razer | 1532:00b7 | 100-35000 (5 stadi) | 125/500/1000 | - |
 | Razer DeathAdder V3 Pro (Wireless) | experimental | razer | 1532:00c3 | 100-35000 (5 stadi) | 125/500/1000 | - |
 | Razer DeathAdder V4 Pro (Wired) | experimental | razer | 1532:00be | 100-45000 (5 stadi) | 125/500/1000/2000/4000/8000 | - |
 | Razer DeathAdder V4 Pro (Wireless) | experimental | razer | 1532:00bf | 100-45000 (5 stadi) | 125/500/1000/2000/4000/8000 | - |

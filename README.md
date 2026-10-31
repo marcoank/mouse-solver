@@ -12,7 +12,7 @@ niente account, nessuna connessione di rete.
 
 ## Mouse supportati
 
-Elenco completo in [SUPPORTED.md](SUPPORTED.md): **207 file modello, 252 coppie VID:PID**, più tutti i Logitech HID++ 2.0.
+Elenco completo in [SUPPORTED.md](SUPPORTED.md): **210 file modello, 254 coppie VID:PID**, più tutti i Logitech HID++ 2.0.
 
 | Marca | Modelli | Da dove viene il protocollo | Cosa si può fare |
 |---|---|---|---|

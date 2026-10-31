@@ -193,7 +193,10 @@ def main():
         while "__" in slug:
             slug = slug.replace("__", "_")
         slug = slug.removeprefix("razer_")
-        (devdir / f"razer_{slug}.toml").write_text(text, encoding="utf-8")
+        path = devdir / f"razer_{slug}.toml"
+        if path.exists():  # stesso nome, PID diverso (es. revisioni)
+            path = devdir / f"razer_{slug}_{dev['pid']:04x}.toml"
+        path.write_text(text, encoding="utf-8")
         written += 1
     print(f"Scritti {written} file Razer. Saltati {len(skipped)}:")
     for s in skipped:
