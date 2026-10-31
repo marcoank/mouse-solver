@@ -1,0 +1,38 @@
+# generato da tools/gen_steelseries.py da rivalcfg: non modificare a mano
+
+name = "SteelSeries Sensei [RAW]"
+vid = 0x1038
+pid = 0x1369
+aliases = [[0x1038, 0x1362], [0x1038, 0x136D], [0x1038, 0x136F], [0x1038, 0x1380], [0x1038, 0x1390]]
+driver = "steelseries"
+status = "experimental"
+notes = "Questo mouse non permette di rileggere le impostazioni: l'app mostra le ultime scritte da qui. Usa Misura polling per controllare."
+
+[steelseries]
+interface = 0
+save = { "report" = "output", "command" = [0x09, 0x00] }
+
+[steelseries.polling]
+cmd = { "report" = "output", "command" = [0x04, 0x00] }
+values = { "125" = [0x04], "250" = [0x03], "500" = [0x02], "1000" = [0x01] }
+
+[steelseries.dpi]
+mode = "presets"
+cmds = [{ "report" = "output", "command" = [0x03, 0x01] }, { "report" = "output", "command" = [0x03, 0x02] }]
+codes = [[90, 1], [180, 2], [270, 3], [360, 4], [450, 5], [540, 6], [630, 7], [720, 8], [810, 9], [900, 10], [990, 11], [1080, 12], [1170, 13], [1260, 14], [1350, 15], [1440, 16], [1530, 17], [1620, 18], [1710, 19], [1800, 20], [1890, 21], [1980, 22], [2070, 23], [2160, 24], [2250, 25], [2340, 26], [2430, 27], [2520, 28], [2610, 29], [2700, 30], [2790, 31], [2880, 32], [2970, 33], [3060, 34], [3150, 35], [3240, 36], [3330, 37], [3420, 38], [3510, 39], [3600, 40], [3690, 41], [3780, 42], [3870, 43], [3960, 44], [4050, 45], [4140, 46], [4230, 47], [4320, 48], [4410, 49], [4500, 50], [4590, 51], [4680, 52], [4770, 53], [4860, 54], [4950, 55], [5040, 56], [5130, 57], [5220, 58], [5310, 59], [5400, 60], [5490, 61], [5580, 62], [5670, 63]]
+code_bytes = 0x01
+
+[steelseries.effect]
+cmd = { "report" = "output", "command" = [0x07, 0x01] }
+values = { "static" = [0x01], "breathing" = [0x03] }
+
+[caps]
+dpi_min = 90
+dpi_max = 5670
+dpi_step = 90
+min_stages = 2
+max_stages = 2
+active_stage_settable = false
+polling = [125, 250, 500, 1000]
+zones = []
+effects = []

@@ -1,0 +1,17 @@
+# Tutti i mouse Logitech con protocollo HID++ 2.0 (Logitech G recenti, col cavo o ricevitore Lightspeed).
+# DPI e polling vengono letti dal mouse stesso: i valori in [caps] sono solo segnaposto.
+name = "Logitech (HID++ 2.0)"
+vid = 0x046D
+pid = 0x0000
+any_pid = true
+driver = "logitech"
+status = "experimental"
+notes = "Per ora solo lettura: DPI e polling attuali. La scrittura nei profili del mouse arriverà quando potremo provarla su un Logitech vero. Chiudi G HUB durante l'uso."
+
+[caps]
+dpi_min = 100
+dpi_max = 25600
+dpi_step = 50
+max_stages = 1
+active_stage_settable = false
+polling = [125, 250, 500, 1000]

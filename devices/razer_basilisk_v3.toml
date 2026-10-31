@@ -1,0 +1,24 @@
+name = "Razer Basilisk V3"
+vid = 0x1532
+pid = 0x0099
+driver = "razer"
+status = "verified"        # verified | community | experimental
+
+[razer]
+transaction_id = 0x1F
+interface = 3
+usage_page = 0x000C
+usage = 0x01
+# ID dei LED per il comando "extended matrix" (classe 0x0F).
+# logo e scroll da OpenRazer, underglow (0x0A) trovato interrogando il mouse in sola lettura.
+leds = { logo = 0x04, scroll = 0x01, underglow = 0x0A }
+
+[caps]
+dpi_min = 100
+dpi_max = 26000
+dpi_step = 50
+max_stages = 5
+polling = [125, 500, 1000]
+zones = ["logo", "scroll", "underglow"]
+# Verificati sul mouse. breathing e reactive: il firmware risponde "non supportato".
+effects = ["static", "spectrum", "wave", "off"]

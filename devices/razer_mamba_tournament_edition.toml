@@ -1,0 +1,24 @@
+# generato da tools/gen_razer.py da OpenRazer: non modificare a mano
+
+name = "Razer Mamba Tournament Edition"
+vid = 0x1532
+pid = 0x0046
+driver = "razer"
+status = "experimental"
+
+[razer]
+transaction_id = 0xFF
+polling = "none"
+lighting = "none"
+dpi = true
+dpi_stages = false
+brightness = false
+
+[caps]
+dpi_min = 100
+dpi_max = 16000
+dpi_step = 50
+max_stages = 1
+polling = []
+zones = []
+effects = []

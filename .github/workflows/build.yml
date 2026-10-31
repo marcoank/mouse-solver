@@ -1,0 +1,21 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --workspace
+      - run: cargo build --release --workspace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mouse-cfg-windows
+          path: |
+            target/release/MouseCfg.exe
+            target/release/mouse-cfg.exe
+            target/release/mouse-cfg-kit.exe

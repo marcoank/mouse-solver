@@ -1,0 +1,45 @@
+# generato da tools/gen_steelseries.py da rivalcfg: non modificare a mano
+
+name = "SteelSeries Rival 100 / SteelSeries Rival 105"
+vid = 0x1038
+pid = 0x1702
+aliases = [[0x1038, 0x170A], [0x1038, 0x170B], [0x1038, 0x170C], [0x1038, 0x1814]]
+driver = "steelseries"
+status = "experimental"
+notes = "Questo mouse non permette di rileggere le impostazioni: l'app mostra le ultime scritte da qui. Usa Misura polling per controllare."
+
+[steelseries]
+interface = 0
+save = { "report" = "output", "command" = [0x09, 0x00] }
+firmware = { "report" = "output", "command" = [0x10, 0x00] }
+
+[steelseries.polling]
+cmd = { "report" = "output", "command" = [0x04, 0x00] }
+values = { "125" = [0x04], "250" = [0x03], "500" = [0x02], "1000" = [0x01] }
+
+[steelseries.dpi]
+mode = "presets"
+cmds = [{ "report" = "output", "command" = [0x03, 0x01] }, { "report" = "output", "command" = [0x03, 0x02] }]
+codes = [[250, 8], [500, 7], [1000, 6], [1250, 5], [1500, 4], [1750, 3], [2000, 2], [4000, 1]]
+code_bytes = 0x01
+
+[steelseries.effect]
+cmd = { "report" = "output", "command" = [0x07, 0x00] }
+values = { "static" = [0x01], "breathing" = [0x03] }
+
+[[steelseries.zones]]
+zone = "logo"
+kind = "rgbcolor"
+cmd = { "report" = "output", "command" = [0x05, 0x00] }
+
+[caps]
+dpi_min = 250
+dpi_max = 4000
+dpi_step = 250
+dpi_values = [250, 500, 1000, 1250, 1500, 1750, 2000, 4000]
+min_stages = 2
+max_stages = 2
+active_stage_settable = false
+polling = [125, 250, 500, 1000]
+zones = ["logo"]
+effects = ["static", "breathing", "off"]

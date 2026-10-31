@@ -1,0 +1,33 @@
+# generato da tools/gen_asus.py da G-Helper: non modificare a mano
+
+name = "ROG Gladius III"
+vid = 0x0B05
+pid = 0x197B
+driver = "asus"
+status = "experimental"
+
+[asus]
+interface = 0
+report_id = 0x00
+packet_size = 65
+dpi = true
+polling = true
+lighting = true
+dpi_xy = false
+dpi_colors = false
+dpi_increment = 50
+dpi_count_settable = false
+dpi_active_settable = true
+brightness_max = 100
+zones = { logo = 0x00, scroll = 0x01, underglow = 0x02 }
+
+[caps]
+dpi_min = 100
+dpi_max = 26000
+dpi_step = 50
+min_stages = 4
+max_stages = 4
+active_stage_settable = true
+polling = [125, 250, 500, 1000]
+zones = ["logo", "scroll", "underglow"]
+effects = ["static", "breathing", "spectrum", "wave", "reactive"]

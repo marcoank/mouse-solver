@@ -1,0 +1,26 @@
+# generato da tools/gen_razer.py da OpenRazer: non modificare a mano
+
+name = "Razer Viper 8KHz"
+vid = 0x1532
+pid = 0x0091
+driver = "razer"
+status = "experimental"
+
+[razer]
+transaction_id = 0xFF
+polling = "v2_dual"
+lighting = "extended"
+dpi = true
+dpi_stages = true
+brightness = true
+transaction_ids = { polling = 0x1F, lighting = 0x1F }
+leds = { logo = 0x04 }
+
+[caps]
+dpi_min = 100
+dpi_max = 20000
+dpi_step = 50
+max_stages = 5
+polling = [125, 500, 1000, 2000, 4000, 8000]
+zones = ["logo"]
+effects = ["static", "breathing", "spectrum", "reactive", "off"]

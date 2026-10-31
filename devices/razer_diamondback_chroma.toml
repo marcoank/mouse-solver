@@ -1,0 +1,24 @@
+# generato da tools/gen_razer.py da OpenRazer: non modificare a mano
+
+name = "Razer Diamondback Chroma"
+vid = 0x1532
+pid = 0x004C
+driver = "razer"
+status = "experimental"
+
+[razer]
+transaction_id = 0xFF
+polling = "none"
+lighting = "none"
+dpi = true
+dpi_stages = false
+brightness = false
+
+[caps]
+dpi_min = 100
+dpi_max = 16000
+dpi_step = 50
+max_stages = 1
+polling = []
+zones = []
+effects = []

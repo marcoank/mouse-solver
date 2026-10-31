@@ -1,0 +1,25 @@
+# generato da tools/gen_razer.py da OpenRazer: non modificare a mano
+
+name = "Razer Atheris (Receiver)"
+vid = 0x1532
+pid = 0x0062
+driver = "razer"
+status = "experimental"
+
+[razer]
+transaction_id = 0x1F
+polling = "standard"
+lighting = "none"
+dpi = true
+dpi_stages = true
+brightness = false
+transaction_ids = { dpi_stages = 0xFF }
+
+[caps]
+dpi_min = 100
+dpi_max = 7200
+dpi_step = 50
+max_stages = 5
+polling = [125, 500, 1000]
+zones = []
+effects = []

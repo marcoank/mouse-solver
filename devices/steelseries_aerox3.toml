@@ -1,0 +1,60 @@
+# generato da tools/gen_steelseries.py da rivalcfg: non modificare a mano
+
+name = "SteelSeries Aerox 3"
+vid = 0x1038
+pid = 0x1836
+driver = "steelseries"
+status = "experimental"
+notes = "Questo mouse non permette di rileggere le impostazioni: l'app mostra le ultime scritte da qui. Usa Misura polling per controllare."
+
+[steelseries]
+interface = 3
+save = { "report" = "output", "command" = [0x11, 0x00] }
+
+[steelseries.polling]
+cmd = { "report" = "output", "command" = [0x2B] }
+values = { "125" = [0x04], "250" = [0x03], "500" = [0x02], "1000" = [0x01] }
+
+[steelseries.dpi]
+mode = "multi"
+cmd = { "report" = "output", "command" = [0x2D] }
+codes = [[200, 4], [300, 6], [400, 8], [500, 11], [600, 13], [700, 15], [800, 18], [900, 20], [1000, 22], [1100, 25], [1200, 27], [1300, 29], [1400, 32], [1500, 34], [1600, 36], [1700, 39], [1800, 41], [1900, 43], [2000, 46], [2100, 48], [2200, 50], [2300, 52], [2400, 55], [2500, 57], [2600, 59], [2700, 62], [2800, 64], [2900, 66], [3000, 69], [3100, 71], [3200, 73], [3300, 76], [3400, 78], [3500, 80], [3600, 83], [3700, 85], [3800, 87], [3900, 90], [4000, 92], [4100, 94], [4200, 97], [4300, 99], [4400, 101], [4500, 104], [4600, 106], [4700, 108], [4800, 111], [4900, 113], [5000, 115], [5100, 118], [5200, 120], [5300, 122], [5400, 125], [5500, 127], [5600, 129], [5700, 132], [5800, 134], [5900, 136], [6000, 139], [6100, 141], [6200, 143], [6300, 146], [6400, 148], [6500, 150], [6600, 153], [6700, 155], [6800, 157], [6900, 160], [7000, 162], [7100, 164], [7200, 167], [7300, 169], [7400, 171], [7500, 173], [7600, 176], [7700, 178], [7800, 180], [7900, 183], [8000, 185], [8100, 188], [8200, 190], [8300, 192], [8400, 195], [8500, 197]]
+code_bytes = 0x01
+count_mode = "number"
+first_preset = 0x01
+xy = "none"
+max_presets = 0x05
+
+[steelseries.effect]
+cmd = { "report" = "output", "command" = [0x27] }
+values = { "static" = [0x00, 0x00], "spectrum" = [0x01, 0x00] }
+
+[steelseries.brightness]
+cmd = { "report" = "output", "command" = [0x23] }
+max = 0x64
+code_bytes = 0x01
+
+[[steelseries.zones]]
+zone = "z1"
+kind = "rgbcolor"
+cmd = { "report" = "output", "command" = [0x21, 0x01] }
+
+[[steelseries.zones]]
+zone = "z2"
+kind = "rgbcolor"
+cmd = { "report" = "output", "command" = [0x21, 0x02, 0x00, 0x00, 0x00] }
+
+[[steelseries.zones]]
+zone = "z3"
+kind = "rgbcolor"
+cmd = { "report" = "output", "command" = [0x21, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] }
+
+[caps]
+dpi_min = 200
+dpi_max = 8500
+dpi_step = 100
+min_stages = 1
+max_stages = 5
+polling = [125, 250, 500, 1000]
+zones = ["z1", "z2", "z3"]
+effects = ["static", "spectrum", "off"]

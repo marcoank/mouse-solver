@@ -1,0 +1,14 @@
+[package]
+name = "mouse-cfg"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "mouse-cfg"
+path = "src/main.rs"
+
+[dependencies]
+mousecfg-core.workspace = true
+mousecfg-drivers.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true

@@ -1,0 +1,21 @@
+# Mouse BenQ Zowie "senza driver" (FK1, FK1+, FK1-B, FK1-C, EC, S, ZA...).
+# VID/PID da usb.ids; altri modelli vengono riconosciuti dal nome.
+name = "BenQ Zowie (senza driver)"
+vid = 0x1AF3
+pid = 0x0001
+aliases = [[0x3057, 0x0002], [0x04A5, 0x8001]]
+match_names = ["zowie"]
+driver = "zowie"
+status = "experimental"
+notes = """
+DPI: premi il tasto sotto il mouse (FK1-B/C: 400, 800, 1600, 3200; il LED indica lo stadio).
+Polling (fonte: FAQ ufficiale Zowie): scollega il mouse, poi ricollegalo tenendo premuto
+  tasto 5 = 500 Hz, tasti 4+5 = 125 Hz, tasto 4 = 1000 Hz. La rotella si illumina quando è fatto.
+Usa 'Misura polling' per vedere il valore attuale."""
+
+[caps]
+dpi_min = 400
+dpi_max = 3200
+dpi_step = 400
+max_stages = 4
+polling = [125, 500, 1000]

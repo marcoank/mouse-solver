@@ -1,0 +1,35 @@
+# generato da tools/gen_asus.py da G-Helper: non modificare a mano
+
+name = "ROG ricevitore OMNI"
+vid = 0x0B05
+pid = 0x1ACE
+driver = "asus"
+status = "experimental"
+notes = "Ricevitore condiviso da: ROG Gladius III Aimpoint (OMNI), ROG Harpe Ace Aim Lab Edition (OMNI), ROG Harpe Ace Extreme (OMNI), ROG Harpe Ace Mini (OMNI), ROG Keris II Ace (OMNI), ROG Keris II Origin (OMNI), ROG Keris II Origin KJP (OMNI), ROG Keris Wireless Aimpoint (OMNI), ROG Strix Impact III Wireless (OMNI). Il mouse deve essere acceso."
+
+[asus]
+interface = 2
+path_contains = "col03"
+report_id = 0x03
+packet_size = 64
+dpi = true
+polling = true
+lighting = true
+dpi_xy = true
+dpi_colors = true
+dpi_increment = 50
+dpi_count_settable = false
+dpi_active_settable = true
+brightness_max = 100
+zones = {  }
+
+[caps]
+dpi_min = 100
+dpi_max = 36000
+dpi_step = 50
+min_stages = 4
+max_stages = 4
+active_stage_settable = true
+polling = [125, 250, 500, 1000]
+zones = []
+effects = []

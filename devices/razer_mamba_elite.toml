@@ -1,0 +1,26 @@
+# generato da tools/gen_razer.py da OpenRazer: non modificare a mano
+
+name = "Razer Mamba Elite"
+vid = 0x1532
+pid = 0x006C
+driver = "razer"
+status = "experimental"
+
+[razer]
+transaction_id = 0x1F
+polling = "standard"
+lighting = "extended"
+dpi = true
+dpi_stages = false
+brightness = true
+transaction_ids = { polling = 0xFF }
+leds = { logo = 0x04, scroll = 0x01, left = 0x11, right = 0x10 }
+
+[caps]
+dpi_min = 100
+dpi_max = 16000
+dpi_step = 50
+max_stages = 1
+polling = [125, 500, 1000]
+zones = ["logo", "scroll", "left", "right"]
+effects = ["static", "breathing", "spectrum", "wave", "reactive", "off"]

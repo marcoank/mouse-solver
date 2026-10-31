@@ -1,0 +1,33 @@
+# generato da tools/gen_asus.py da G-Helper: non modificare a mano
+
+name = "ROG Gladius II Origin"
+vid = 0x0B05
+pid = 0x1877
+driver = "asus"
+status = "experimental"
+
+[asus]
+interface = 2
+report_id = 0x00
+packet_size = 65
+dpi = true
+polling = false
+lighting = false
+dpi_xy = false
+dpi_colors = false
+dpi_increment = 100
+dpi_count_settable = false
+dpi_active_settable = true
+brightness_max = 4
+zones = {  }
+
+[caps]
+dpi_min = 100
+dpi_max = 12000
+dpi_step = 100
+min_stages = 2
+max_stages = 2
+active_stage_settable = true
+polling = []
+zones = []
+effects = []

@@ -1,0 +1,26 @@
+# generato da tools/gen_razer.py da OpenRazer: non modificare a mano
+
+name = "Razer Naga Epic Chroma (Wireless)"
+vid = 0x1532
+pid = 0x003F
+driver = "razer"
+status = "experimental"
+
+[razer]
+transaction_id = 0xFF
+polling = "standard"
+lighting = "classic"
+dpi = true
+dpi_stages = false
+brightness = true
+transaction_ids = { lighting = 0x3F }
+leds = { scroll = 0x01, backlight = 0x05 }
+
+[caps]
+dpi_min = 100
+dpi_max = 8200
+dpi_step = 50
+max_stages = 1
+polling = [125, 500, 1000]
+zones = ["scroll", "backlight"]
+effects = ["static", "breathing", "spectrum", "off"]

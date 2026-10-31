@@ -1,0 +1,33 @@
+# generato da tools/gen_asus.py da G-Helper: non modificare a mano
+
+name = "ROG Strix Carry (Wireless)"
+vid = 0x0B05
+pid = 0x18B4
+driver = "asus"
+status = "experimental"
+
+[asus]
+interface = 1
+report_id = 0x00
+packet_size = 65
+dpi = false
+polling = false
+lighting = false
+dpi_xy = false
+dpi_colors = false
+dpi_increment = 50
+dpi_count_settable = false
+dpi_active_settable = false
+brightness_max = 100
+zones = {  }
+
+[caps]
+dpi_min = 50
+dpi_max = 7200
+dpi_step = 50
+min_stages = 0
+max_stages = 0
+active_stage_settable = false
+polling = []
+zones = []
+effects = []

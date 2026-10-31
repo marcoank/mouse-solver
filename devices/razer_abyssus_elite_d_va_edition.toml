@@ -1,0 +1,26 @@
+# generato da tools/gen_razer.py da OpenRazer: non modificare a mano
+
+name = "Razer Abyssus Elite (D.Va Edition)"
+vid = 0x1532
+pid = 0x006A
+driver = "razer"
+status = "experimental"
+
+[razer]
+transaction_id = 0xFF
+polling = "standard"
+lighting = "extended"
+dpi = true
+dpi_stages = false
+brightness = true
+transaction_ids = { lighting = 0x3F }
+leds = { logo = 0x04 }
+
+[caps]
+dpi_min = 100
+dpi_max = 7200
+dpi_step = 50
+max_stages = 1
+polling = [125, 500, 1000]
+zones = ["logo"]
+effects = ["static", "breathing", "spectrum", "reactive", "off"]
