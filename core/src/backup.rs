@@ -12,7 +12,7 @@ pub struct Backup {
     pub state: MouseState,
 }
 
-/// %APPDATA%mouse-solverbackups
+/// Cartella dei backup: %APPDATA%\mouse-solver\backups
 pub fn dir() -> PathBuf {
     let base = std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
     base.join("mouse-solver").join("backups")

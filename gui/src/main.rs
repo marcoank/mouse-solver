@@ -19,7 +19,7 @@ const ORANGE: Color32 = Color32::from_rgb(220, 150, 40);
 const BLUE: Color32 = Color32::from_rgb(70, 130, 220);
 
 /// Pagina dove allegare i report (modulo "test-report" in .github/ISSUE_TEMPLATE).
-const ISSUES_URL: &str = "https://github.com/OWNER/mouse-solver/issues/new?template=test-report.yml";
+const ISSUES_URL: &str = "https://github.com/marcoank/mouse-solver/issues/new?template=test-report.yml";
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
