@@ -50,7 +50,7 @@ impl From<Rgb> for String {
 impl TryFrom<String> for Rgb {
     type Error = String;
     fn try_from(s: String) -> Result<Rgb, String> {
-        Rgb::parse(&s).ok_or_else(|| format!("colore non valido: {s}"))
+        Rgb::parse(&s).ok_or_else(|| crate::tf!("colore non valido: {s}", "invalid color: {s}"))
     }
 }
 
@@ -111,7 +111,7 @@ impl Effect {
 impl fmt::Display for Effect {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Effect::Unknown { code } => write!(f, "sconosciuto (0x{code:02x})"),
+            Effect::Unknown { code } => f.write_str(&crate::tf!("sconosciuto (0x{code:02x})", "unknown (0x{code:02x})")),
             e => match e.color() {
                 Some(c) => write!(f, "{} #{c}", e.name()),
                 None => write!(f, "{}", e.name()),
@@ -190,23 +190,23 @@ impl Capabilities {
     pub fn check_dpi_stages(&self, stages: &[u16], active: usize) -> anyhow::Result<()> {
         if stages.len() < self.min_stages as usize || stages.len() > self.max_stages as usize {
             match self.min_stages == self.max_stages {
-                true => anyhow::bail!("questo mouse ha esattamente {} stadi DPI", self.max_stages),
-                false => anyhow::bail!("servono da {} a {} stadi DPI", self.min_stages, self.max_stages),
+                true => anyhow::bail!(crate::tf!("questo mouse ha esattamente {} stadi DPI", "this mouse has exactly {} DPI stages", self.max_stages)),
+                false => anyhow::bail!(crate::tf!("servono da {} a {} stadi DPI", "{} to {} DPI stages are required", self.min_stages, self.max_stages)),
             }
         }
         if active >= stages.len() {
-            anyhow::bail!("stadio attivo {} non esiste (ci sono {} stadi)", active + 1, stages.len());
+            anyhow::bail!(crate::tf!("stadio attivo {} non esiste (ci sono {} stadi)", "active stage {} does not exist (there are {} stages)", active + 1, stages.len()));
         }
         for &d in stages {
             if d < self.dpi_min || d > self.dpi_max {
-                anyhow::bail!("DPI {d} fuori dai limiti {}-{}", self.dpi_min, self.dpi_max);
+                anyhow::bail!(crate::tf!("DPI {d} fuori dai limiti {}-{}", "DPI {d} outside the limits {}-{}", self.dpi_min, self.dpi_max));
             }
             if !self.dpi_values.is_empty() {
                 if !self.dpi_values.contains(&d) {
-                    anyhow::bail!("DPI {d} non disponibile (valori possibili: {:?})", self.dpi_values);
+                    anyhow::bail!(crate::tf!("DPI {d} non disponibile (valori possibili: {:?})", "DPI {d} not available (possible values: {:?})", self.dpi_values));
                 }
             } else if self.dpi_step > 1 && (d - self.dpi_min) % self.dpi_step != 0 {
-                anyhow::bail!("DPI {d} non è un multiplo di {}", self.dpi_step);
+                anyhow::bail!(crate::tf!("DPI {d} non è un multiplo di {}", "DPI {d} is not a multiple of {}", self.dpi_step));
             }
         }
         Ok(())
@@ -224,17 +224,17 @@ impl Capabilities {
 
     pub fn check_polling(&self, hz: u16) -> anyhow::Result<()> {
         if !self.polling.contains(&hz) {
-            anyhow::bail!("polling {hz} Hz non supportato (valori possibili: {:?})", self.polling);
+            anyhow::bail!(crate::tf!("polling {hz} Hz non supportato (valori possibili: {:?})", "polling {hz} Hz not supported (possible values: {:?})", self.polling));
         }
         Ok(())
     }
 
     pub fn check_effect(&self, zone: &str, effect: &Effect) -> anyhow::Result<()> {
         if !self.zones.iter().any(|z| z == zone) {
-            anyhow::bail!("zona '{zone}' non esiste (zone: {})", self.zones.join(", "));
+            anyhow::bail!(crate::tf!("zona '{zone}' non esiste (zone: {})", "zone '{zone}' does not exist (zones: {})", self.zones.join(", ")));
         }
         if !self.effects.iter().any(|e| e == effect.name()) {
-            anyhow::bail!("effetto '{}' non supportato (effetti: {})", effect.name(), self.effects.join(", "));
+            anyhow::bail!(crate::tf!("effetto '{}' non supportato (effetti: {})", "effect '{}' not supported (effects: {})", effect.name(), self.effects.join(", ")));
         }
         Ok(())
     }

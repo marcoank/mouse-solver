@@ -5,6 +5,7 @@ pid = 0x0141
 driver = "coolermaster"
 status = "experimental"
 notes = "Si possono cambiare solo le luci (salvate nel mouse e rilette per verifica): stadi DPI e polling di Cooler Master non sono documentati."
+notes_en = "Only lighting can be changed (saved to the mouse and read back to verify): Cooler Master DPI stages and polling are not documented."
 
 [coolermaster]
 family = "mm"

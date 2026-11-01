@@ -92,7 +92,7 @@ impl Family {
             "kone_xp" => Family::KoneXp,
             "kone_xp_air" => Family::KoneXpAir,
             other => bail!(
-                "famiglia '{other}' sconosciuta (valori: kova_2016, kova_aimo, kone_aimo, kone_pro, kone_xp, kone_xp_air)"
+                tf!("famiglia '{other}' sconosciuta (valori: kova_2016, kova_aimo, kone_aimo, kone_pro, kone_xp, kone_xp_air)", "unknown family '{other}' (values: kova_2016, kova_aimo, kone_aimo, kone_pro, kone_xp, kone_xp_air)")
             ),
         })
     }
@@ -310,23 +310,23 @@ fn fix_checksum(rec: &mut [u8]) {
 /// Controlla intestazione, profilo e somma prima di usare (o scrivere) un record.
 fn validate(l: &Layout, rec: &[u8], profile: u8) -> Result<()> {
     if rec.len() != l.len || rec[0] != SETTINGS || rec[1] as usize != l.len {
-        bail!("record impostazioni non valido (intestazione {:02x?})", &rec[..rec.len().min(3)]);
+        bail!(tf!("record impostazioni non valido (intestazione {:02x?})", "invalid settings record (header {:02x?})", &rec[..rec.len().min(3)]));
     }
     if rec[2] != profile {
-        bail!("il record è del profilo {} invece che del profilo {}", rec[2] + 1, profile + 1);
+        bail!(tf!("il record è del profilo {} invece che del profilo {}", "the record is for profile {} instead of profile {}", rec[2] + 1, profile + 1));
     }
     if !checksum_ok(rec) {
-        bail!("somma di controllo del record errata: lettura non affidabile");
+        bail!(t!("somma di controllo del record errata: lettura non affidabile", "record checksum mismatch: the read is not reliable"));
     }
     Ok(())
 }
 
 fn dpi_raw(enc: DpiEnc, d: u16) -> Result<u16> {
     match enc {
-        DpiEnc::U8Div50 if d % 50 != 0 || d / 50 > 255 || d == 0 => bail!("DPI {d} non codificabile"),
-        DpiEnc::U16Div50 if d % 50 != 0 || d == 0 => bail!("DPI {d} non è un multiplo di 50"),
+        DpiEnc::U8Div50 if d % 50 != 0 || d / 50 > 255 || d == 0 => bail!(tf!("DPI {d} non codificabile", "DPI {d} cannot be encoded")),
+        DpiEnc::U16Div50 if d % 50 != 0 || d == 0 => bail!(tf!("DPI {d} non è un multiplo di 50", "DPI {d} is not a multiple of 50")),
         DpiEnc::U8Div50 | DpiEnc::U16Div50 => Ok(d / 50),
-        DpiEnc::U16Raw if d == 0 => bail!("DPI 0 non valido"),
+        DpiEnc::U16Raw if d == 0 => bail!(t!("DPI 0 non valido", "DPI 0 is not valid")),
         DpiEnc::U16Raw => Ok(d),
     }
 }
@@ -411,13 +411,13 @@ fn decode(l: &Layout, rec: &[u8]) -> MouseState {
 
 fn encode_stages(l: &Layout, rec: &mut [u8], stages: &[u16], active: usize) -> Result<()> {
     if !l.dpi_writable {
-        bail!("su questo modello i DPI sono in sola lettura: nessuna fonte conferma come scriverli");
+        bail!(t!("su questo modello i DPI sono in sola lettura: nessuna fonte conferma come scriverli", "DPI is read-only on this model: no source confirms how to write it"));
     }
     if stages.is_empty() || stages.len() > STAGES || active >= stages.len() {
-        bail!("servono da 1 a 5 stadi DPI");
+        bail!(t!("servono da 1 a 5 stadi DPI", "1 to 5 DPI stages required"));
     }
     if !l.mask_writable && stages.len() != STAGES {
-        bail!("questo modello accetta solo 5 stadi DPI");
+        bail!(t!("questo modello accetta solo 5 stadi DPI", "this model only accepts 5 DPI stages"));
     }
     for (i, &d) in stages.iter().enumerate() {
         write_dpi(l, rec, l.dpi, i, d)?;
@@ -434,7 +434,7 @@ fn encode_stages(l: &Layout, rec: &mut [u8], stages: &[u16], active: usize) -> R
 }
 
 fn encode_polling(l: &Layout, rec: &mut [u8], hz: u16) -> Result<()> {
-    let code = RATES.iter().position(|&r| r == hz).context("polling non gestito")?;
+    let code = RATES.iter().position(|&r| r == hz).context(t!("polling non gestito", "polling rate not supported"))?;
     rec[l.polling] = code as u8;
     Ok(())
 }
@@ -459,7 +459,7 @@ fn encode_effect(l: &Layout, rec: &mut [u8], effect: &Effect) -> Result<()> {
                         rec[16] = STATIC;
                     }
                 }
-                e => bail!("effetto '{}' non gestito da questo mouse", e.name()),
+                e => bail!(tf!("effetto '{}' non gestito da questo mouse", "effect '{}' not supported by this mouse", e.name())),
             }
             if let Some(c) = effect.color() {
                 // Indice del colore predefinito (18, 22) lasciato com'è: valgono i colori personalizzati.
@@ -470,12 +470,12 @@ fn encode_effect(l: &Layout, rec: &mut [u8], effect: &Effect) -> Result<()> {
         }
         Lights::Coded { effect: at, speed, slots, theme, off, wave, .. } => {
             let code = match effect {
-                Effect::Off => off.context("questo mouse non ha l'effetto 'spento': usa la luminosità 0")?,
+                Effect::Off => off.context(t!("questo mouse non ha l'effetto 'spento': usa la luminosità 0", "this mouse has no 'off' effect: use brightness 0"))?,
                 Effect::Static { .. } => STATIC,
                 Effect::Breathing { .. } => BREATHING,
                 Effect::Wave { reverse: false } => *wave,
-                Effect::Wave { reverse: true } => bail!("la direzione dell'onda non è configurabile"),
-                e => bail!("effetto '{}' non gestito da questo mouse", e.name()),
+                Effect::Wave { reverse: true } => bail!(t!("la direzione dell'onda non è configurabile", "the wave direction is not configurable")),
+                e => bail!(tf!("effetto '{}' non gestito da questo mouse", "effect '{}' not supported by this mouse", e.name())),
             };
             rec[*at] = code;
             if matches!(effect, Effect::Breathing { .. } | Effect::Wave { .. }) {
@@ -505,7 +505,7 @@ fn encode_brightness(l: &Layout, rec: &mut [u8], v: u8) -> Result<()> {
             rec[*brightness] = v;
             Ok(())
         }
-        Lights::Kova { .. } => bail!("questo mouse non ha un comando per la luminosità: usa un colore più scuro"),
+        Lights::Kova { .. } => bail!(t!("questo mouse non ha un comando per la luminosità: usa un colore più scuro", "this mouse has no brightness command: use a darker color")),
     }
 }
 
@@ -563,21 +563,21 @@ fn r2_frame(cmd: u8, op: u8, payload: &[u8]) -> Vec<u8> {
 /// Risposta R2: stesso contesto e comando, operazione 0x08 (0x0C = rifiutato), payload della lunghezza dichiarata.
 fn parse_r2(b: &[u8], cmd: u8) -> Result<Vec<u8>> {
     if b.len() < 5 || b[0] != SETTINGS || b[1] != XP_AIR_CTX || b[2] != cmd {
-        bail!("risposta inattesa dal mouse ({:02x?})", &b[..b.len().min(5)]);
+        bail!(tf!("risposta inattesa dal mouse ({:02x?})", "unexpected response from the mouse ({:02x?})", &b[..b.len().min(5)]));
     }
     if b[3] != OP_OK {
-        bail!("il mouse ha rifiutato il comando {cmd:02x} (risposta {:02x})", b[3]);
+        bail!(tf!("il mouse ha rifiutato il comando {cmd:02x} (risposta {:02x})", "the mouse rejected command {cmd:02x} (response {:02x})", b[3]));
     }
     let n = b[4] as usize;
     if n > R2_PAYLOAD || b.len() < 5 + n {
-        bail!("risposta del mouse troppo corta");
+        bail!(t!("risposta del mouse troppo corta", "mouse response too short"));
     }
     Ok(b[5..5 + n].to_vec())
 }
 
 fn debug(dir: &str, b: &[u8]) {
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
-        eprintln!("{dir} {}", b.iter().map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
+    if mousecfg_core::trace::on() {
+        mousecfg_core::trace!("{dir} {}", b.iter().map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
     }
 }
 
@@ -600,34 +600,34 @@ pub struct RoccatNew {
 pub fn check_config(spec: &DeviceSpec) -> Result<()> {
     let cfg: RoccatNewConfig = spec.section("roccat_new")?;
     let fam = Family::parse(&cfg.family)?;
-    check_caps(&layout(fam), &spec.caps).with_context(|| format!("[caps] non coerente con la famiglia {}", cfg.family))
+    check_caps(&layout(fam), &spec.caps).with_context(|| tf!("[caps] non coerente con la famiglia {}", "[caps] inconsistent with family {}", cfg.family))
 }
 
 fn check_caps(l: &Layout, c: &Capabilities) -> Result<()> {
     if c.max_stages as usize > STAGES || c.min_stages < 1 {
-        bail!("gli stadi vanno da 1 a 5");
+        bail!(t!("gli stadi vanno da 1 a 5", "stages range from 1 to 5"));
     }
     if l.dpi_writable && !l.mask_writable && c.min_stages as usize != STAGES {
-        bail!("min_stages deve essere 5");
+        bail!(t!("min_stages deve essere 5", "min_stages must be 5"));
     }
     if !l.active_writable && c.active_stage_settable {
-        bail!("active_stage_settable deve essere false");
+        bail!(t!("active_stage_settable deve essere false", "active_stage_settable must be false"));
     }
     if let Some(p) = c.polling.iter().find(|p| !RATES.contains(p)) {
-        bail!("polling {p} non codificabile");
+        bail!(tf!("polling {p} non codificabile", "polling {p} cannot be encoded"));
     }
     for d in [c.dpi_min, c.dpi_max] {
         dpi_raw(l.enc, d)?;
     }
     if l.enc != DpiEnc::U16Raw && c.dpi_step % 50 != 0 {
-        bail!("dpi_step deve essere un multiplo di 50");
+        bail!(t!("dpi_step deve essere un multiplo di 50", "dpi_step must be a multiple of 50"));
     }
     if c.zones.iter().any(|z| z != ZONE) || (!c.effects.is_empty() && c.zones.is_empty()) {
-        bail!("l'unica zona è \"{ZONE}\"");
+        bail!(tf!("l'unica zona è \"{ZONE}\"", "the only zone is \"{ZONE}\""));
     }
     let ok = supported_effects(l);
     if let Some(e) = c.effects.iter().find(|e| !ok.contains(&e.as_str())) {
-        bail!("effetto '{e}' non gestito (possibili: {})", ok.join(", "));
+        bail!(tf!("effetto '{e}' non gestito (possibili: {})", "effect '{e}' not supported (possible: {})", ok.join(", ")));
     }
     Ok(())
 }
@@ -661,8 +661,8 @@ pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<d
     }
     let app = if fam.is_r2() { "Turtle Beach Swarm II" } else { "Roccat Swarm" };
     match last_err {
-        Some(e) => bail!("{} trovato ma non risponde ({e:#}). Chiudi {app} e riprova.", spec.name),
-        None => bail!("{}: interfaccia di configurazione non trovata. Chiudi {app} e riprova.", spec.name),
+        Some(e) => bail!(tf!("{} trovato ma non risponde ({e:#}). Chiudi {app} e riprova.", "{} found but not responding ({e:#}). Close {app} and try again.", spec.name)),
+        None => bail!(tf!("{}: interfaccia di configurazione non trovata. Chiudi {app} e riprova.", "{}: configuration interface not found. Close {app} and try again.", spec.name)),
     }
 }
 
@@ -675,7 +675,7 @@ impl RoccatNew {
     fn send(&self, frame: &[u8]) -> Result<()> {
         let ok = if self.fam.is_r2() { allowed_r2(frame) } else { allowed_r1(&self.l, frame) };
         if !ok {
-            bail!("comando {:02x?} non permesso: bloccato prima di arrivare al mouse", &frame[..frame.len().min(6)]);
+            bail!(tf!("comando {:02x?} non permesso: bloccato prima di arrivare al mouse", "command {:02x?} not allowed: blocked before reaching the mouse", &frame[..frame.len().min(6)]));
         }
         let mut b = frame.to_vec();
         if let Some(n) = self.declared(frame[0]) {
@@ -687,31 +687,31 @@ impl RoccatNew {
             Err(_) if self.pad > b.len() => {
                 b.resize(self.pad, 0);
                 debug(">", &b);
-                self.dev.send_feature_report(&b).context("scrittura sul mouse fallita")
+                self.dev.send_feature_report(&b).context(t!("scrittura sul mouse fallita", "writing to the mouse failed"))
             }
-            Err(e) => Err(e).context("scrittura sul mouse fallita"),
+            Err(e) => Err(e).context(t!("scrittura sul mouse fallita", "writing to the mouse failed")),
         }
     }
 
     /// Legge i primi `n` byte (ID compreso) del feature report `id`.
     fn get(&self, id: u8, n: usize) -> Result<Vec<u8>> {
         if !matches!(id, SELECT | PROFILE | SETTINGS) || (self.fam.is_r2() && id != SETTINGS) {
-            bail!("lettura del report {id:02x} non permessa");
+            bail!(tf!("lettura del report {id:02x} non permessa", "reading report {id:02x} not allowed"));
         }
         let first = self.declared(id).unwrap_or(n).max(n);
         let mut b = vec![0u8; first];
         b[0] = id;
         if let Err(e) = self.dev.get_feature_report(&mut b) {
             if self.pad <= first {
-                return Err(e).context("lettura dal mouse fallita");
+                return Err(e).context(t!("lettura dal mouse fallita", "reading from the mouse failed"));
             }
             b = vec![0u8; self.pad];
             b[0] = id;
-            self.dev.get_feature_report(&mut b).context("lettura dal mouse fallita")?;
+            self.dev.get_feature_report(&mut b).context(t!("lettura dal mouse fallita", "reading from the mouse failed"))?;
         }
         debug("<", &b);
         if b[0] != id {
-            bail!("risposta inattesa dal mouse (report {:02x} invece di {id:02x})", b[0]);
+            bail!(tf!("risposta inattesa dal mouse (report {:02x} invece di {id:02x})", "unexpected response from the mouse (report {:02x} instead of {id:02x})", b[0]));
         }
         b.truncate(n);
         Ok(b)
@@ -726,12 +726,12 @@ impl RoccatNew {
             last = self.get(SELECT, 3)?[1];
             match last {
                 0x01 => return Ok(()),
-                0x02 if self.l.strict_status => bail!("il mouse ha rifiutato il comando"),
+                0x02 if self.l.strict_status => bail!(t!("il mouse ha rifiutato il comando", "the mouse rejected the command")),
                 _ => sleep(Duration::from_millis(50)),
             }
         }
         if self.l.strict_status {
-            bail!("il mouse non risponde (stato {last:02x})");
+            bail!(tf!("il mouse non risponde (stato {last:02x})", "the mouse is not responding (status {last:02x})"));
         }
         // Kone Pro/XP: si prosegue, la validità è controllata dalla rilettura.
         debug("stato", &[last]);
@@ -741,7 +741,7 @@ impl RoccatNew {
     fn read_r1(&self) -> Result<(u8, Vec<u8>)> {
         let p = self.get(PROFILE, 3)?[2];
         if p >= PROFILES {
-            bail!("profilo attivo non valido ({p})");
+            bail!(tf!("profilo attivo non valido ({p})", "invalid active profile ({p})"));
         }
         self.send(&[SELECT, p, SELECT_SETTINGS])?;
         self.wait_ready()?;
@@ -773,14 +773,14 @@ impl RoccatNew {
             sleep(Duration::from_millis(50));
             let a = self.get(SETTINGS, R2_LEN)?;
             if a[1] != 0 || a[3] != OP_OK {
-                bail!("il ricevitore non risponde");
+                bail!(t!("il ricevitore non risponde", "the receiver is not responding"));
             }
             q[3] = 0x05;
             self.send(&q)?;
             sleep(Duration::from_millis(50));
             let b = self.get(SETTINGS, R2_LEN)?;
             if b[1] != 0 || b[3] != OP_OK || b[13] != 1 {
-                bail!("il mouse non è collegato al ricevitore: accendilo o muovilo");
+                bail!(t!("il mouse non è collegato al ricevitore: accendilo o muovilo", "the mouse is not connected to the receiver: turn it on or move it"));
             }
         }
         self.send(&r2_frame(CMD_SOFTWARE, OP_WRITE, &SESSION_OPEN))?;
@@ -798,7 +798,7 @@ impl RoccatNew {
     fn read_r2(&self) -> Result<(u8, Vec<u8>)> {
         let st = self.r2_read(CMD_PROFILE_STATE)?;
         if st.len() < 2 || st[0] >= PROFILES || st[0] >= st[1] {
-            bail!("stato dei profili non valido ({st:02x?})");
+            bail!(tf!("stato dei profili non valido ({st:02x?})", "invalid profile state ({st:02x?})"));
         }
         let p = st[0];
         let mut rec = Vec::with_capacity(self.l.len);
@@ -810,13 +810,13 @@ impl RoccatNew {
             sleep(Duration::from_millis(90));
             let part = self.r2_read(CMD_MAIN)?;
             if part.is_empty() {
-                bail!("il mouse ha risposto con un pezzo vuoto");
+                bail!(t!("il mouse ha risposto con un pezzo vuoto", "the mouse replied with an empty chunk"));
             }
             let take = (self.l.len - rec.len()).min(part.len());
             rec.extend_from_slice(&part[..take]);
         }
         if rec.len() != self.l.len {
-            bail!("record impostazioni incompleto ({} byte)", rec.len());
+            bail!(tf!("record impostazioni incompleto ({} byte)", "incomplete settings record ({} bytes)", rec.len()));
         }
         validate(&self.l, &rec, p)?;
         Ok((p, rec))
@@ -861,7 +861,7 @@ impl RoccatNew {
         }
         let (p2, back) = self.read()?;
         if p2 != p || back != rec {
-            bail!("verifica fallita: il mouse non ha salvato le impostazioni come inviate");
+            bail!(t!("verifica fallita: il mouse non ha salvato le impostazioni come inviate", "verification failed: the mouse did not save the settings as sent"));
         }
         Ok(())
     }
@@ -918,7 +918,7 @@ impl MouseDriver for RoccatNew {
 
     fn set_brightness(&mut self, zone: &str, value: u8) -> Result<()> {
         if !self.spec.caps.zones.iter().any(|z| z == zone) {
-            bail!("zona '{zone}' non esiste");
+            bail!(tf!("zona '{zone}' non esiste", "zone '{zone}' does not exist"));
         }
         self.modify(|l, rec| encode_brightness(l, rec, value))
     }

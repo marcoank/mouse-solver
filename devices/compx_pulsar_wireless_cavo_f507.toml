@@ -6,6 +6,7 @@ pid = 0xf507
 driver = "compx"
 status = "experimental"
 notes = "Si modifica solo il profilo attivo. DPI oltre 10000 codificati come sul sensore 3395 (X2V2 Mini): sui modelli più vecchi col sensore 3370 tieniti sotto 10000. La spia DPI non c'è su tutti i modelli."
+notes_en = "Only the active profile is changed. DPI above 10000 is encoded as on the 3395 sensor (X2V2 Mini): on older models with the 3370 sensor stay below 10000. Not all models have the DPI indicator."
 
 [compx]
 transport = "output"

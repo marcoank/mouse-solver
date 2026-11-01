@@ -1,0 +1,13 @@
+mouse solver
+Copyright 2026 mouse solver contributors
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This project is not affiliated with, endorsed by or sponsored by Razer, ASUS, SteelSeries,
+Logitech, Corsair, Glorious, Pulsar, Lamzu, Endgame Gear, Roccat/Turtle Beach, HyperX/HP,
+Cooler Master, BenQ Zowie, SinoWealth or any other manufacturer. Product and brand names are
+trademarks of their respective owners and are used only to identify compatible hardware.
+
+The device protocols were reimplemented from public documentation and open source projects,
+read as reference and not copied: OpenRazer, G-Helper, rivalcfg, libratbag, ckb-next, OpenRGB
+and the independent projects cited in the source files of each driver.

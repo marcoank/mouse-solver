@@ -45,8 +45,8 @@ pub struct Corsair {
 }
 
 fn debug(dir: &str, b: &[u8]) {
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
-        eprintln!("{dir} {}", b.iter().take(16).map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
+    if mousecfg_core::trace::on() {
+        mousecfg_core::trace!("{dir} {}", b.iter().take(16).map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
     }
 }
 
@@ -76,7 +76,7 @@ impl Corsair {
         let dev = crate::open_first(api, vid, pid, |d| d.interface_number() == 1 && d.usage_page() == page, |dev| {
             transact(dev, &cfg, &probe).is_ok_and(|r| cfg.family == "nxp" || r[2] == 0)
         })
-        .with_context(|| format!("{} trovato ma non risponde. Chiudi iCUE e riprova.", spec.name))?;
+        .with_context(|| tf!("{} trovato ma non risponde. Chiudi iCUE e riprova.", "{} found but not responding. Close iCUE and try again.", spec.name))?;
         let mut spec = spec.clone();
         (spec.vid, spec.pid) = (vid, pid);
         Ok(Corsair { dev, spec, cfg })
@@ -89,7 +89,7 @@ impl Corsair {
     fn bragi_get(&self, prop: u8) -> Result<u32> {
         let r = self.tx(&[self.cfg.bragi_prefix, 0x02, prop, 0x00])?;
         if r[2] != 0 {
-            bail!("il mouse risponde errore {}", r[2]);
+            bail!(tf!("il mouse risponde errore {}", "the mouse replies with error {}", r[2]));
         }
         Ok(u32::from_le_bytes([r[3], r[4], r[5], r[6]]))
     }
@@ -141,7 +141,11 @@ impl Corsair {
 /// Invia un pacchetto e aspetta la risposta che ripete i primi byte (scartando gli eventi 01/03).
 fn transact(dev: &HidDevice, cfg: &CorsairConfig, payload: &[u8]) -> Result<[u8; LEN]> {
     if !allowed(cfg, payload) {
-        bail!("comando Corsair {:02x?} bloccato: non è nella lista dei comandi sicuri", &payload[..payload.len().min(4)]);
+        bail!(tf!(
+            "comando Corsair {:02x?} bloccato: non è nella lista dei comandi sicuri",
+            "Corsair command {:02x?} blocked: not in the list of safe commands",
+            &payload[..payload.len().min(4)]
+        ));
     }
     let mut pkt = [0u8; LEN + 1];
     pkt[1..1 + payload.len()].copy_from_slice(payload);
@@ -170,7 +174,7 @@ fn transact(dev: &HidDevice, cfg: &CorsairConfig, payload: &[u8]) -> Result<[u8;
     if is_write {
         return Ok([0u8; LEN]); // alcune scritture non hanno risposta: la verifica è la rilettura
     }
-    bail!("nessuna risposta dal mouse")
+    bail!(t!("nessuna risposta dal mouse", "no response from the mouse"))
 }
 
 impl MouseDriver for Corsair {
@@ -199,7 +203,7 @@ impl MouseDriver for Corsair {
     fn set_dpi_stages(&mut self, stages: &[u16], active: usize) -> Result<()> {
         self.spec.caps.check_dpi_stages(stages, active)?;
         if self.cfg.family != "nxp" {
-            bail!("su questo modello gli stadi DPI salvati non sono documentati");
+            bail!(t!("su questo modello gli stadi DPI salvati non sono documentati", "on this model the saved DPI stages are not documented"));
         }
         let old_mask = self.get(0x05)?[4];
         let mask = (old_mask & 0x01) | (((1u8 << stages.len()) - 1) << 1); // il cecchino resta com'era
@@ -216,9 +220,9 @@ impl MouseDriver for Corsair {
             self.tx(&[0x07, 0x13, 0x02, target, active as u8 + 1])?;
         }
         self.tx(&[0x07, 0x04, 0x01])?; // tasto DPI gestito dal mouse
-        let back = self.nxp_state()?.dpi_stages.context("rilettura fallita")?;
+        let back = self.nxp_state()?.dpi_stages.context(t!("rilettura fallita", "read-back failed"))?;
         if back.stages != stages || back.active != active {
-            bail!("verifica fallita: il mouse riporta stadi {:?} attivo {}", back.stages, back.active + 1);
+            bail!(tf!("verifica fallita: il mouse riporta stadi {:?} attivo {}", "check failed: the mouse reports stages {:?} active {}", back.stages, back.active + 1));
         }
         Ok(())
     }
@@ -237,32 +241,32 @@ impl MouseDriver for Corsair {
             250 => 2,
             500 => 3,
             1000 => 4,
-            _ => bail!("polling {hz} Hz non gestito"),
+            _ => bail!(tf!("polling {hz} Hz non gestito", "polling {hz} Hz not supported")),
         };
         self.tx(&[self.cfg.bragi_prefix, 0x01, 0x01, 0x00, v, 0x00])?;
         if self.bragi_get(0x01)? != v as u32 {
-            bail!("verifica fallita: il mouse non ha accettato il polling");
+            bail!(t!("verifica fallita: il mouse non ha accettato il polling", "check failed: the mouse did not accept the polling rate"));
         }
         Ok(())
     }
 
     fn set_lighting(&mut self, zone: &str, effect: &Effect) -> Result<()> {
         self.spec.caps.check_effect(zone, effect)?;
-        let z = ZONE_NAMES.iter().position(|n| *n == zone).context("zona sconosciuta")? as u8;
+        let z = ZONE_NAMES.iter().position(|n| *n == zone).context(t!("zona sconosciuta", "unknown zone"))? as u8;
         let c = match *effect {
             Effect::Off => Rgb(0, 0, 0),
             Effect::Static { color } => color,
-            ref e => bail!("su questi Corsair si può salvare solo un colore fisso, non '{}'", e.name()),
+            ref e => bail!(tf!("su questi Corsair si può salvare solo un colore fisso, non '{}'", "on these Corsair mice only a static color can be saved, not '{}'", e.name())),
         };
         self.tx(&[0x07, 0x13, 0x10 + z, 0x01, c.0, c.1, c.2])?;
         let r = self.get(0x10 + z)?;
         if Rgb(r[4], r[5], r[6]) != c {
-            bail!("verifica fallita su {zone}");
+            bail!(tf!("verifica fallita su {zone}", "check failed on {zone}"));
         }
         Ok(())
     }
 
     fn set_brightness(&mut self, _: &str, _: u8) -> Result<()> {
-        bail!("questo mouse non ha un comando per la luminosità: usa un colore più scuro")
+        bail!(t!("questo mouse non ha un comando per la luminosità: usa un colore più scuro", "this mouse has no brightness command: use a darker color"))
     }
 }

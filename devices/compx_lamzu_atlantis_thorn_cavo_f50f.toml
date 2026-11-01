@@ -5,6 +5,7 @@ pid = 0xf50f
 driver = "compx"
 status = "experimental"
 notes = "Si modifica solo il profilo attivo. DPI fino a 12800: la codifica oltre 12800 non è documentata per Lamzu. Luci non gestite (valori della spia DPI sconosciuti per Lamzu)."
+notes_en = "Only the active profile is changed. DPI up to 12800: the encoding above 12800 is not documented for Lamzu. Lighting not handled (DPI indicator values unknown for Lamzu)."
 
 [compx]
 transport = "output"

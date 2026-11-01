@@ -5,6 +5,7 @@ pid = 0x2E2C
 driver = "roccat_new"
 status = "experimental"
 notes = "Kone AIMO 16K / Remastered. Il Kone AIMO originale (1e7d:2e27) usa un formato non documentato e non è supportato. Gli 11 LED prendono lo stesso colore."
+notes_en = "Kone AIMO 16K / Remastered. The original Kone AIMO (1e7d:2e27) uses an undocumented format and is not supported. The 11 LEDs all get the same color."
 
 [roccat_new]
 family = "kone_aimo"

@@ -103,7 +103,7 @@ pub fn scan(api: &HidApi, db: &Db) -> Vec<Found> {
 
 /// Apre il driver per un mouse trovato da `scan` (usa il suo VID/PID reale, che può essere un alias).
 pub fn open(api: &HidApi, found: &Found) -> Result<Box<dyn MouseDriver>> {
-    let Some(spec) = &found.spec else { bail!("{} non è ancora supportato", found.display_name()) };
+    let Some(spec) = &found.spec else { bail!(mousecfg_core::tf!("{} non è ancora supportato", "{} is not supported yet", found.display_name())) };
     let (vid, pid) = (found.vid, found.pid);
     match spec.driver.as_str() {
         "razer" => Ok(Box::new(razer::Razer::open(api, spec, vid, pid)?)),
@@ -121,7 +121,7 @@ pub fn open(api: &HidApi, found: &Found) -> Result<Box<dyn MouseDriver>> {
         "hyperx" => hyperx::open(api, spec, vid, pid),
         "pulsar" => pulsar::open(api, spec, vid, pid),
         "roccat_new" => roccat_new::open(api, spec, vid, pid),
-        other => bail!("driver '{other}' non ancora implementato"),
+        other => bail!(mousecfg_core::tf!("driver '{other}' non ancora implementato", "driver '{other}' not implemented yet")),
     }
 }
 

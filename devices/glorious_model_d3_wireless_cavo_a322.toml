@@ -5,6 +5,7 @@ pid = 0xA322
 driver = "glorious"
 status = "experimental"
 notes = "Le impostazioni si rileggono dal mouse. Se non risponde è in standby: muovilo. Il polling scritto è quello del cavo."
+notes_en = "Settings are read back from the mouse. If it doesn't respond it's in standby: move it. The polling written is the cable's."
 
 [glorious]
 family = "g3"

@@ -7,6 +7,7 @@ any_pid = true
 driver = "logitech"
 status = "experimental"
 notes = "Le impostazioni vengono salvate nel profilo onboard attivo (lettura-modifica-scrittura: nome e altre impostazioni di G HUB restano). Chiudi G HUB durante l'uso. Polling massimo salvabile: 1000 Hz."
+notes_en = "Settings are saved to the active onboard profile (read-modify-write: the name and other G HUB settings are kept). Close G HUB while using this app. Maximum polling that can be saved: 1000 Hz."
 
 [caps]
 dpi_min = 100

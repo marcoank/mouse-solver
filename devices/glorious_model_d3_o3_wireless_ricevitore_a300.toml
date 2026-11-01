@@ -5,6 +5,7 @@ pid = 0xA300
 driver = "glorious"
 status = "experimental"
 notes = "Le impostazioni si rileggono dal mouse. Se non risponde è in standby: muovilo. Il polling scritto è quello del collegamento wireless (8000 Hz via radio non verificato)."
+notes_en = "Settings are read back from the mouse. If it doesn't respond it's in standby: move it. The polling written is the wireless link's (8000 Hz over wireless not verified)."
 
 [glorious]
 family = "g3"

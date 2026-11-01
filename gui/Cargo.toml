@@ -1,14 +1,16 @@
 [package]
-name = "mouse-cfg-gui"
+name = "mouse-solver-gui"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [[bin]]
-name = "MouseCfg"
+name = "MouseSolver"
 path = "src/main.rs"
 
 [dependencies]
 mousecfg-core.workspace = true
 mousecfg-drivers.workspace = true
 anyhow.workspace = true
+serde_json.workspace = true
 eframe = { version = "0.37", default-features = false, features = ["default_fonts", "glow"] }

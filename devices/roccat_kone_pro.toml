@@ -5,6 +5,7 @@ pid = 0x2C88
 driver = "roccat_new"
 status = "experimental"
 notes = "Sempre 5 stadi DPI (scrivendo i DPI vengono riattivati tutti e 5). I due LED (tasto sinistro e destro) prendono lo stesso colore."
+notes_en = "Always 5 DPI stages (writing DPI re-enables all 5). The two LEDs (left and right button) get the same color."
 
 [roccat_new]
 family = "kone_pro"

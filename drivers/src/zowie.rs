@@ -17,9 +17,12 @@ impl Driverless {
     }
 
     fn refuse(&self) -> Result<()> {
-        match &self.spec.notes {
-            Some(n) => bail!("questo mouse si configura dai tasti, non via USB.\n{n}"),
-            None => bail!("questo mouse si configura dai tasti, non via USB."),
+        match self.spec.notes_text() {
+            Some(n) => bail!(tf!(
+                "questo mouse si configura dai tasti, non via USB.\n{n}",
+                "this mouse is configured with its buttons, not over USB.\n{n}"
+            )),
+            None => bail!(t!("questo mouse si configura dai tasti, non via USB.", "this mouse is configured with its buttons, not over USB.")),
         }
     }
 }

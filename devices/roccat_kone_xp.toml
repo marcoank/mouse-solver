@@ -5,6 +5,7 @@ pid = 0x2C8B
 driver = "roccat_new"
 status = "experimental"
 notes = "DPI in sola lettura: la codifica (DPI/50) è solo dedotta, nessuna fonte la scrive. Si possono cambiare polling e luci. I 20 LED prendono lo stesso colore."
+notes_en = "DPI is read-only: the encoding (DPI/50) is only deduced, no source writes it. Polling and lighting can be changed. The 20 LEDs all get the same color."
 
 [roccat_new]
 family = "kone_xp"

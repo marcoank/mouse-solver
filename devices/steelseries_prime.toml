@@ -7,6 +7,7 @@ aliases = [[0x1038, 0x182A], [0x1038, 0x1856]]
 driver = "steelseries"
 status = "experimental"
 notes = "Questo mouse non permette di rileggere le impostazioni: l'app mostra le ultime scritte da qui. Usa Misura polling per controllare."
+notes_en = "This mouse can't read its settings back: the app shows the last ones written from here. Use Measure polling to check."
 
 [steelseries]
 interface = 0

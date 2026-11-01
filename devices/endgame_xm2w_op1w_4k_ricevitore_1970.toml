@@ -7,6 +7,7 @@ pid = 0x1970
 driver = "endgame"
 status = "experimental"
 notes = "Il mouse deve essere sveglio: muovilo prima di leggere o scrivere. Sui modelli v1 lo stadio attivo si cambia solo col tasto DPI. Il LED ha colori fissi: niente luci."
+notes_en = "The mouse must be awake: move it before reading or writing. On v1 models the active stage can only be changed with the DPI button. The LED has fixed colors: no lighting."
 
 [endgame]
 family = "4k"

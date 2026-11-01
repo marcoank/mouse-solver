@@ -5,6 +5,7 @@ pid = 0x5402
 driver = "pulsar"
 status = "experimental"
 notes = "Il mouse deve essere acceso e sveglio (muovilo prima di leggere o scrivere). Si usa sempre il profilo 1. Luci escluse: dipendono dal mouse collegato. Nessun comando di salvataggio documentato: dopo la prima modifica controlla che DPI e polling restino anche dopo aver scollegato il mouse. Chiudi Pulsar Fusion: quando parte riscrive le sue impostazioni."
+notes_en = "The mouse must be on and awake (move it before reading or writing). Profile 1 is always used. Lighting excluded: it depends on the connected mouse. No save command is documented: after the first change, check that DPI and polling persist after unplugging the mouse. Close Pulsar Fusion: when it starts it rewrites its own settings."
 
 [pulsar]
 family = "pulsar_s"

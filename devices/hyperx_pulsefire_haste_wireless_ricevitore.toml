@@ -5,6 +5,7 @@ pid = 0x028E
 driver = "hyperx"
 status = "experimental"
 notes = "DPI e polling si rileggono dal mouse. Il colore salvato non si può rileggere (si vede l'ultimo scritto da qui); respirazione e spettro non sono ancora documentati in modo affidabile."
+notes_en = "DPI and polling are read back from the mouse. The saved color can't be read back (you see the last one written from here); breathing and spectrum are not yet reliably documented."
 
 [hyperx]
 family = "haste"

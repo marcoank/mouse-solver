@@ -64,15 +64,15 @@ pub struct SinoWealth {
 }
 
 fn debug(dir: &str, b: &[u8]) {
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
-        eprintln!("{dir} {}", b.iter().take(64).map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
+    if mousecfg_core::trace::on() {
+        mousecfg_core::trace!("{dir} {}", b.iter().take(64).map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
     }
 }
 
 /// Comando breve sul report 0x05 (solo firmware e "prepara la lettura della configurazione").
 fn command(dev: &HidDevice, cmd: u8) -> Result<[u8; 6]> {
     if ![CMD_FIRMWARE, CMD_GET_CONFIG].contains(&cmd) {
-        bail!("comando SinoWealth 0x{cmd:02x} bloccato");
+        bail!(tf!("comando SinoWealth 0x{cmd:02x} bloccato", "SinoWealth command 0x{cmd:02x} blocked"));
     }
     let req = [CMD, cmd, 0, 0, 0, 0];
     debug(">", &req);
@@ -83,7 +83,7 @@ fn command(dev: &HidDevice, cmd: u8) -> Result<[u8; 6]> {
         dev.get_feature_report(&mut buf)?;
         debug("<", &buf);
         if buf[1] != cmd {
-            bail!("risposta per un altro comando");
+            bail!(t!("risposta per un altro comando", "reply to a different command"));
         }
     }
     Ok(buf)
@@ -113,7 +113,11 @@ impl SinoWealth {
             s.fill_caps();
             return Ok(s);
         }
-        bail!("{} trovato ma la collezione di configurazione non risponde. Chiudi il software del produttore e riprova.", spec.name)
+        bail!(tf!(
+            "{} trovato ma la collezione di configurazione non risponde. Chiudi il software del produttore e riprova.",
+            "{} found but its configuration interface does not respond. Close the manufacturer's software and try again.",
+            spec.name
+        ))
     }
 
     /// Dimensione reale del blocco: dalla lettura se Windows la restituisce, altrimenti dalla tabella.
@@ -133,7 +137,7 @@ impl SinoWealth {
         let n = self.dev.get_feature_report(&mut buf)?;
         debug("<", &buf[..n.min(buf.len())]);
         if n < SIZE_MIN || buf[1] != CMD_GET_CONFIG {
-            bail!("blocco di configurazione non valido ({n} byte)");
+            bail!(tf!("blocco di configurazione non valido ({n} byte)", "invalid configuration block ({n} bytes)"));
         }
         Ok((n, buf))
     }
@@ -181,9 +185,11 @@ impl SinoWealth {
     /// Legge, modifica, scrive e verifica rileggendo.
     fn modify(&mut self, change: impl FnOnce(&Self, &mut Vec<u8>) -> Result<()>) -> Result<()> {
         let size = self.config_size.with_context(|| {
-            format!(
+            tf!(
                 "firmware {} non ancora nella tabella: per sicurezza questo mouse è in sola lettura. \
-                 Manda il report di mouse-cfg-kit per aggiungerlo.",
+                 Manda il report di mouse-solver-kit per aggiungerlo.",
+                "firmware {} is not in the table yet: to be safe this mouse is read-only. \
+                 Send the mouse-solver-kit report to get it added.",
                 self.fw_version
             )
         })?;
@@ -199,7 +205,7 @@ impl SinoWealth {
         // Confronto solo la parte significativa del blocco (il byte 3 vale 0 in lettura).
         let same = |a: &[u8], b: &[u8]| a[4..size] == b[4..size] && a[2] == b[2];
         if !same(&back, &cfg) {
-            bail!("verifica fallita: il mouse non ha salvato il blocco di configurazione come inviato");
+            bail!(t!("verifica fallita: il mouse non ha salvato il blocco di configurazione come inviato", "check failed: the mouse did not save the configuration block as sent"));
         }
         Ok(())
     }
@@ -297,7 +303,7 @@ impl MouseDriver for SinoWealth {
 
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
-        let code = RATES.iter().find(|(_, h)| *h == hz).map(|(c, _)| *c).context("polling non gestito")?;
+        let code = RATES.iter().find(|(_, h)| *h == hz).map(|(c, _)| *c).context(t!("polling non gestito", "polling rate not supported"))?;
         self.modify(|_, cfg| {
             cfg[RATE_FLAGS] = (cfg[RATE_FLAGS] & 0xF0) | code;
             Ok(())
@@ -337,7 +343,7 @@ impl MouseDriver for SinoWealth {
                         cfg[CYCLE_MODE] |= 0x40;
                     }
                 }
-                ref e => bail!("effetto '{}' non gestito su questo mouse", e.name()),
+                ref e => bail!(tf!("effetto '{}' non gestito su questo mouse", "effect '{}' not supported on this mouse", e.name())),
             }
             Ok(())
         })
@@ -350,7 +356,7 @@ impl MouseDriver for SinoWealth {
                 0x01 => CYCLE_MODE,
                 0x02 => STATIC_MODE,
                 0x03 => BREATH_MODE,
-                _ => bail!("imposta prima un effetto (fisso, respiro o ciclo)"),
+                _ => bail!(t!("imposta prima un effetto (fisso, respiro o ciclo)", "set an effect first (static, breathing or cycle)")),
             };
             cfg[o] = (cfg[o] & 0x0F) | (raw << 4);
             Ok(())

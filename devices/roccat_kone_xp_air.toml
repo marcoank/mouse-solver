@@ -6,6 +6,7 @@ aliases = [[0x10F5, 0x5015]]
 driver = "roccat_new"
 status = "experimental"
 notes = "Provato dalla fonte solo tramite ricevitore (10f5:5017); via cavo (10f5:5015) è lo stesso protocollo ma non è mai stato provato. Nessun effetto 'spento': usa la luminosità 0. I 7 LED prendono lo stesso colore."
+notes_en = "Tested by the source only via the receiver (10f5:5017); wired (10f5:5015) uses the same protocol but has never been tested. No 'off' effect: use brightness 0. The 7 LEDs all get the same color."
 
 [roccat_new]
 family = "kone_xp_air"

@@ -5,6 +5,7 @@ pid = 0x001B
 driver = "pulsar"
 status = "experimental"
 notes = "Si possono cambiare polling e stadio attivo. I valori DPI si leggono ma non si scrivono (il comando non è mai stato provato) e le luci non sono gestite. Non è noto se le impostazioni restino dopo lo spegnimento: controlla. Chiudi il programma Lamzu prima di usare questo. Il mouse deve essere acceso e sveglio."
+notes_en = "Polling and the active stage can be changed. DPI values are read but not written (the command has never been tested) and lighting is not handled. It's not known whether settings persist after power-off: check. Close the Lamzu software before using this app. The mouse must be on and awake."
 
 [pulsar]
 family = "lamzu_aurora"

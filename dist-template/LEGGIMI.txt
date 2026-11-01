@@ -1,0 +1,33 @@
+MOUSE SOLVER - VERSIONE DI PROVA (BETA)
+=======================================
+
+Imposta DPI, polling e luci del mouse senza il software del produttore. Le impostazioni vengono
+salvate nella memoria del mouse: apri, applica, chiudi.
+
+IMPORTANTE: e' una beta. Solo pochi modelli sono stati provati su un mouse vero; gli altri usano
+protocolli presi da progetti open source. Prima di ogni modifica il programma salva una copia delle
+impostazioni e, quando il mouse lo permette, rilegge ogni scrittura per verificarla.
+Firmware, tasti e macro non vengono mai toccati. Uso a tuo rischio (vedi LICENSE).
+
+COME PROVARLO
+1. Estrai tutto lo zip in una cartella. Non avviarlo da dentro lo zip.
+2. Chiudi il software del produttore (Synapse, Armoury Crate, G HUB, iCUE, SteelSeries GG...),
+   anche dall'icona vicino all'orologio.
+3. Collega il mouse, meglio col cavo.
+4. Avvia MouseSolver.exe. Windows potrebbe mostrare "PC protetto": il programma non e' firmato.
+   Clicca "Ulteriori informazioni" e poi "Esegui comunque".
+5. Cambia UNA cosa alla volta e premi "Applica". Il messaggio in basso dice se e' andata (verde)
+   o no (rosso). Poi scollega e ricollega il mouse e premi "Rileggi": e' rimasta?
+
+AIUTACI
+In fondo alla finestra apri "Com'e' andata? Aiutaci con un report", rispondi e premi "Crea report".
+Sul Desktop compare un file mouse-solver-report-*.json: niente seriali ne' dati personali.
+Allegalo a una segnalazione con "Apri la pagina delle segnalazioni".
+Mouse non riconosciuto? Avvia mouse-solver-kit.exe, scegli 1 e allega i file report_*.json.
+
+SE QUALCOSA NON VA
+"Ripristina ultimo backup" rimette le impostazioni di prima. In ogni caso il mouse resta normale e
+puoi sempre reimpostarlo col software del produttore.
+
+Non affiliato con nessun produttore di mouse: i nomi dei marchi servono solo a indicare i modelli
+compatibili (vedi NOTICE).

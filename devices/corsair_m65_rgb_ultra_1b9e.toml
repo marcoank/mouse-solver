@@ -5,6 +5,7 @@ pid = 0x1B9E
 driver = "corsair"
 status = "experimental"
 notes = "Su questa famiglia Corsair si può impostare solo il polling: stadi DPI e luci salvate non sono documentati. Serve una cattura col kit per aggiungerli."
+notes_en = "On this Corsair family only polling can be set: DPI stages and saved lighting are not documented. A capture with the kit is needed to add them."
 
 [corsair]
 family = "bragi"

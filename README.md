@@ -1,109 +1,99 @@
-# mouse-cfg
+# mouse solver
 
-Imposta DPI, polling rate e luci del mouse senza Synapse, Armoury Crate, G HUB, iCUE o SteelSeries GG.
-Un exe portable: lo apri, scrivi le impostazioni nella memoria del mouse, lo chiudi. Niente servizi in background,
-niente account, nessuna connessione di rete.
+**[Italiano](README.it.md)** · English
 
-| Exe | A cosa serve |
+Set your gaming mouse DPI, polling rate and lighting without Synapse, Armoury Crate, G HUB, iCUE or SteelSeries GG.
+One portable exe: open it, write the settings into the mouse memory, close it. No background services, no account,
+no network connection.
+
+> **Beta.** 369 model files cover 421 USB IDs from 13 brands plus all HID++ 2.0 Logitech mice, but only a few have
+> been tested on real hardware. Everything else uses protocols taken from open source projects. Please
+> [report how it went](../../issues/new?template=test-report.yml): it is how models move from *experimental* to *tested*.
+
+| Exe | What it is for |
 |---|---|
-| `MouseCfg.exe` | interfaccia grafica, quella da usare |
-| `mouse-cfg.exe` | riga di comando (test e debug) |
-| `mouse-cfg-kit.exe` | per i mouse non supportati: raccolta informazioni in sola lettura e cattura guidata del software ufficiale |
+| `MouseSolver.exe` | the app (Italian or English, following Windows) |
+| `mouse-solver.exe` | command line (tests and debugging) |
+| `mouse-solver-kit.exe` | for unsupported mice: read-only data collection and guided capture of the vendor software |
 
-## Mouse supportati
+Download: [Releases](../../releases).
 
-Elenco completo in [SUPPORTED.md](SUPPORTED.md): **369 file modello, 421 coppie VID:PID**, più tutti i Logitech HID++ 2.0.
-Lo stesso mouse può avere più PID (cavo, wireless, ricevitore, edizioni speciali).
+## Supported mice
 
-| Marca | VID:PID | Fonte del protocollo | Cosa si può fare |
+Full list in [SUPPORTED.md](SUPPORTED.md). The same mouse can have several IDs (cable, wireless, receiver, special editions).
+
+| Brand | USB IDs | Protocol source | What you can set |
 |---|---|---|---|
-| Razer | 114 (Basilisk V3 **verificato**) | OpenRazer | DPI e stadi, polling (fino a 8000 Hz), luci per zona, luminosità; tutto riletto |
-| SteelSeries | 76 | rivalcfg | DPI, polling, colori; **solo scrittura** (non si possono rileggere) |
-| ASUS ROG / TUF | 61 | G-Helper | DPI e stadi, polling, luci; riletto |
-| Corsair | 41 | ckb-next, OpenRGB | famiglia NXP (M65, Sabre, Scimitar, Harpoon, Glaive, Katar, Ironclaw...): DPI e stadi, polling, colore fisso per zona. Famiglia Bragi (M55, Katar Pro, Dark Core Pro, M75...): solo polling |
-| Glorious | 33 + 3 SinoWealth | progetti indipendenti, libratbag | Model O 2 / I 2 / D 2 / O 2 Mini, D3/O3, O/D 2 PRO, Model O/D Wireless, Model O/D/O-/Eternal |
-| Pulsar | 13 | progetti indipendenti | X2, X2H, X2A, Xlite, X3, ricevitori 1K/8K: DPI, stadio attivo, polling, LED |
-| Lamzu | 36 | progetti indipendenti | Atlantis/Thorn: DPI, polling. Serie Aurora: solo polling e stadio attivo |
-| Endgame Gear | 9 | progetti indipendenti | XM2w/OP1w 4k, OP1 8k v2, serie WE: DPI, polling |
-| Roccat | 15 | libratbag, progetti indipendenti | Kone XTD/Pure/EMP, Kova, Kone AIMO, Kone Pro, Kone XP, Kone XP Air |
-| HyperX | 8 | progetti indipendenti | Pulsefire Dart, Haste Wireless, Saga Pro |
-| Cooler Master | 5 | OpenRGB | MM530/711/712/720/730: solo luci |
-| Logitech G | tutti gli HID++ 2.0 | libratbag | DPI, polling, luci nel profilo onboard |
-| SinoWealth | 7 | libratbag | Machenike, Marvo, G-Wolves, Genesis, T-Dagger... (riconosciuti dal firmware) |
-| BenQ Zowie | tutti i "senza driver" | FAQ Zowie | si configurano dai tasti: l'app spiega come e misura il polling |
+| Razer | 114 (Basilisk V3 **verified**) | OpenRazer | DPI stages, polling (up to 8000 Hz), lighting per zone, brightness; all read back |
+| SteelSeries | 76 | rivalcfg | DPI, polling, colours; **write-only** (cannot be read back) |
+| ASUS ROG / TUF | 61 (tested by a user on a ROG mouse) | G-Helper | DPI stages, polling, lighting; read back |
+| Corsair | 41 | ckb-next, OpenRGB | NXP family (M65, Sabre, Scimitar, Harpoon, Glaive, Katar, Ironclaw...): DPI, polling, static colour per zone. Bragi family (M55, Katar Pro, Dark Core Pro, M75...): polling only |
+| Glorious | 33 + 3 SinoWealth | independent projects, libratbag | Model O 2 / I 2 / D 2 / O 2 Mini, D3/O3, O/D 2 PRO, Model O/D Wireless, Model O/D/O-/Eternal |
+| Pulsar | 13 | independent projects | X2, X2H, X2A, Xlite, X3, 1K/8K dongles: DPI, active stage, polling, LED |
+| Lamzu | 36 | independent projects | Atlantis/Thorn: DPI, polling. Aurora series: polling and active stage only |
+| Endgame Gear | 9 | independent projects | XM2w/OP1w 4k, OP1 8k v2, WE series: DPI, polling |
+| Roccat | 15 | libratbag, independent projects | Kone XTD/Pure/EMP, Kova, Kone AIMO, Kone Pro, Kone XP, Kone XP Air |
+| HyperX | 8 | independent projects | Pulsefire Dart, Haste Wireless, Saga Pro |
+| Cooler Master | 5 | OpenRGB | MM530/711/712/720/730: lighting only |
+| Logitech G | all HID++ 2.0 | libratbag | DPI, polling, lighting in the onboard profile |
+| SinoWealth | 7 | libratbag | Machenike, Marvo, G-Wolves, Genesis, T-Dagger... (identified by firmware) |
+| BenQ Zowie | all "driverless" models | Zowie FAQ | set with the mouse buttons: the app explains how and measures the polling rate |
 
-Gli stati: `verified` = provato da noi su mouse reale; `community` = provato da qualcun altro; `experimental` = preso da
-progetti open source, mai provato da noi. Oggi è verificato solo il Razer Basilisk V3: tutto il resto è `experimental`.
-Ogni modello è un file in [devices/](devices/): per un mouse simile basta un nuovo TOML.
+Status labels: `verified` = tested by us on a real mouse; `community` = tested by someone else; `experimental` =
+from open source projects, not tested yet.
 
-### Da sapere prima di usarli
+### Good to know
 
-- **Solo scrittura** (SteelSeries, HyperX Dart e Saga Pro, Glorious G2 e GP): il mouse non permette di rileggere,
-  l'app mostra i valori scritti l'ultima volta da qui. Usa "Misura polling" per controllare.
-- **Glorious Model O 2 / I 2 / D 2 / O 2 Mini**: il blocco di configurazione va riscritto intero, quindi lift-off,
-  debounce e motion sync tornano ai valori di fabbrica e il mouse passa al profilo 1.
-- **Glorious PRO e Model O/D Wireless, Pulsar famiglia S, Lamzu**: nessun comando di salvataggio è documentato;
-  che le impostazioni restino dopo aver scollegato il mouse non è ancora dimostrato.
-- **Corsair NXP**: dopo il cambio di polling il mouse si ricollega da solo (un paio di secondi). Il colore salvato si vede
-  dopo averlo ricollegato. Sui modelli "a file" (Glaive, Scimitar Pro/Elite, M65 Elite, Ironclaw, Nightsword, Dark Core)
-  il salvataggio dei DPI non è verificato.
-- **Logitech**: si modifica solo il profilo onboard attivo, leggendo e riscrivendo i soli byte di DPI, polling e luci
-  (nome e altre impostazioni di G HUB restano). Polling massimo salvabile: 1000 Hz.
-- **SinoWealth**: i firmware non in tabella restano in sola lettura per sicurezza.
+- **Write-only** (SteelSeries, HyperX Dart and Saga Pro, Glorious G2 and GP): the mouse cannot be read back, the app
+  shows the values last written from here. Use "Measure polling" to check.
+- **Glorious Model O 2 / I 2 / D 2 / O 2 Mini**: the whole configuration block is rewritten, so lift-off, debounce and
+  motion sync go back to factory values and the mouse switches to profile 1.
+- **Glorious PRO and Model O/D Wireless, Pulsar family S, Lamzu**: no save command is documented; whether the settings
+  survive unplugging is not proven yet.
+- **Corsair NXP**: after changing the polling rate the mouse reconnects by itself (a couple of seconds). The saved colour
+  shows after replugging. On "file-based" models (Glaive, Scimitar Pro/Elite, M65 Elite, Ironclaw, Nightsword,
+  Dark Core) saving DPI is not verified.
+- **Logitech**: only the active onboard profile is changed, by reading it and rewriting just the DPI, polling and
+  lighting bytes (the name and other G HUB settings stay). Highest polling that can be saved: 1000 Hz.
+- **SinoWealth**: firmware versions not in the table stay read-only for safety.
 
-Per aggiornare dal codice di OpenRazer, rivalcfg e G-Helper (i generatori leggono i sorgenti come testo, senza eseguirli):
+## Safety
+
+- Every driver has a **closed list** of allowed commands (read/write DPI, polling, lighting and the documented save step).
+  Firmware, bootloader, factory reset, receiver pairing, buttons and macros are refused before reaching the mouse.
+- Only writes documented by a source are sent; writes that are only "inferred" are left out.
+- A backup is saved to `%APPDATA%\mouse-solver\backups\` before every write.
+- Every write is read back and compared (except on write-only mice, which say so).
+- Running vendor software is detected and reported: it may overwrite the settings.
+
+## Command line
 
 ```
-python -I tools/update_devices.py
+mouse-solver list
+mouse-solver status
+mouse-solver dpi 800,1600,3200 --active 2
+mouse-solver polling 1000
+mouse-solver rgb logo static ff0000
+mouse-solver rgb all spectrum
+mouse-solver brightness all 50
+mouse-solver measure            # real polling rate: move the mouse in circles
+mouse-solver backup
+mouse-solver restore            # last backup
 ```
 
-## Riga di comando
+`MOUSE_SOLVER_LANG=it` or `=en` forces the language; `MOUSE_SOLVER_DEBUG=1` prints every packet sent and received.
 
-```
-mouse-cfg list
-mouse-cfg status
-mouse-cfg dpi 800,1600,3200 --active 2
-mouse-cfg polling 1000
-mouse-cfg rgb logo static ff0000
-mouse-cfg rgb all spectrum
-mouse-cfg brightness all 50
-mouse-cfg measure            # polling reale: muovi il mouse in cerchio
-mouse-cfg backup
-mouse-cfg restore            # ultimo backup
-```
+## Help with a mouse we don't support
 
-Con la variabile `MOUSECFG_DEBUG=1` la CLI stampa ogni pacchetto inviato e ricevuto.
+1. `mouse-solver-kit.exe` → **1 Collect information** (read-only, 1 minute): IDs, HID interfaces, descriptors, feature
+   reports and, for known brands, the answers to read commands. Creates `report_*.json`.
+2. `mouse-solver-kit.exe` → **2 Guided capture** (10 minutes, needs [USBPcap](https://desowin.org/usbpcap/) and the kit
+   run as administrator): records only the traffic of the chosen mouse while you change DPI, polling and lighting in the
+   vendor software, one step at a time, and checks at the end that no other device was recorded.
+3. Open a [new mouse issue](../../issues/new?template=new-mouse.yml) and attach the files. We analyse captures with
+   `tools/analyze_capture.py`, which proposes which bytes encode DPI, polling and colours.
 
-## Sicurezza
-
-- Ogni driver ha una **lista chiusa** di comandi ammessi (lettura e scrittura di DPI, polling, luci e il salvataggio
-  documentato). Firmware, bootloader, reset di fabbrica, abbinamento dei ricevitori, tasti e macro vengono rifiutati
-  prima di arrivare al mouse.
-- Si mandano solo scritture documentate da una fonte; quelle solo "dedotte" sono lasciate fuori.
-- Prima di ogni scrittura si salva un backup in `%APPDATA%\mouse-cfg\backups\`.
-- Dopo ogni scrittura si rilegge e si confronta (tranne sui mouse "solo scrittura", che lo dichiarano).
-- Il software del produttore aperto viene segnalato: può sovrascrivere le impostazioni.
-
-## Misura del polling
-
-`Misura polling` conta i pacchetti che il mouse manda davvero mentre lo muovi. Funziona con ogni mouse.
-Da Windows 11 24H2 i programmi in background ricevono il mouse a circa 125 Hz, quindi durante la misura si apre una piccola
-finestra in primo piano.
-
-## Reverse engineering di un mouse nuovo
-
-1. `mouse-cfg-kit.exe` → **1 Raccolta informazioni** (sola lettura, 1 minuto): VID/PID, interfacce HID, descrittori,
-   feature report dei mouse sconosciuti e, per Razer/ASUS/Logitech, le risposte ai comandi di lettura noti.
-   Produce `report_*.json`.
-2. `mouse-cfg-kit.exe` → **2 Cattura guidata** (10 minuti, serve [USBPcap](https://desowin.org/usbpcap/) e il kit avviato
-   come amministratore): registra solo il traffico del mouse scelto mentre cambi DPI, polling e luci nel software
-   ufficiale, un passo alla volta. Alla fine controlla che nella cattura non ci sia nessun altro dispositivo.
-   Produce una cartella `cattura_<vid>_<pid>_<ora>` con `capture.pcap` e `markers.json`.
-3. `python -I tools/analyze_capture.py <cartella>`: separa i comandi per passo, scarta quelli ripetuti e propone quali byte
-   codificano DPI, polling e colori (`analisi.md`).
-4. Dal risultato si scrive un `devices/*.toml` `experimental`, si prova, si promuove.
-
-## Compilare
+## Building
 
 ```
 cargo build --release
@@ -111,9 +101,14 @@ cargo test --workspace
 python -I tools/test_analyze_capture.py
 ```
 
-Riferimenti dei protocolli (letti e reimplementati, non copiati): [OpenRazer](https://github.com/openrazer/openrazer)
-(GPL-2.0), [G-Helper](https://github.com/seerge/g-helper) (GPL-3.0), [rivalcfg](https://github.com/flozz/rivalcfg)
-(WTFPL), [libratbag](https://github.com/libratbag/libratbag) (MIT), [ckb-next](https://github.com/ckb-next/ckb-next)
-(GPL-2.0), [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB) (GPL-2.0) e diversi progetti indipendenti per Glorious,
-Pulsar, Lamzu, Endgame Gear, Roccat e HyperX (citati nei commenti dei driver).
-La licenza del progetto è ancora da decidere.
+Pushing a `v*` tag builds the release zip with GitHub Actions (`.github/workflows/release.yml`).
+
+## License
+
+[Apache License 2.0](LICENSE). Not affiliated with any mouse manufacturer; brand names are used only to identify
+compatible hardware (see [NOTICE](NOTICE)).
+
+Protocols were read and reimplemented, not copied, from [OpenRazer](https://github.com/openrazer/openrazer),
+[G-Helper](https://github.com/seerge/g-helper), [rivalcfg](https://github.com/flozz/rivalcfg),
+[libratbag](https://github.com/libratbag/libratbag), [ckb-next](https://github.com/ckb-next/ckb-next),
+[OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB) and the independent projects cited in each driver.

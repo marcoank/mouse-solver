@@ -1,0 +1,24 @@
+name: "Unsupported mouse / Mouse non supportato"
+description: "Your mouse is not in the list / Il tuo mouse non è nell'elenco"
+title: "[New mouse] <brand + model / marca + modello>"
+labels: ["new-mouse"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Run **mouse-solver-kit.exe** and choose **1** (read only, 1 minute): it creates `report_*.json` files. Attach them below.
+        For a full capture with the official software choose **2** (needs USBPcap, see README).
+        Avvia **mouse-solver-kit.exe** e scegli **1** (sola lettura, 1 minuto): crea i file `report_*.json`. Allegali qui sotto.
+        Per una cattura completa col software ufficiale scegli **2** (serve USBPcap, vedi README).
+  - type: input
+    id: model
+    attributes:
+      label: "Mouse (brand, exact model) / Mouse (marca, modello esatto)"
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: "report_*.json / capture folder (zipped) / cartella della cattura (zippata)"
+    validations:
+      required: true

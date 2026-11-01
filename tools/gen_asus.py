@@ -195,6 +195,7 @@ def toml(m, names):
              'status = "experimental"']
     if len(names) > 1:
         lines.append(f"notes = {json.dumps('Ricevitore condiviso da: ' + ', '.join(names) + '. Il mouse deve essere acceso.')}")
+        lines.append(f"notes_en = {json.dumps('Receiver shared by: ' + ', '.join(names) + '. The mouse must be on.')}")
     lines += ["", "[asus]"]
     if m["interface"] is not None:
         lines.append(f"interface = {m['interface']}")

@@ -5,6 +5,7 @@ pid = 0x1960
 driver = "compx"
 status = "experimental"
 notes = "4 stadi fissi; lo stadio attivo si cambia col tasto (la sua scrittura non è mai stata provata). CPI fino a 10000: oltre la codifica non è verificata. Nessuna luce configurabile. Il mouse si addormenta dopo pochi secondi: muovilo se non risponde."
+notes_en = "4 fixed stages; the active stage is changed with the button (writing it has never been tested). CPI up to 10000: the encoding above that is not verified. No configurable lighting. The mouse falls asleep after a few seconds: move it if it doesn't respond."
 
 [compx]
 transport = "feature"

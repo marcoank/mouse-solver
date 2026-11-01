@@ -15,8 +15,8 @@ jobs:
       - run: cargo build --release --workspace
       - uses: actions/upload-artifact@v4
         with:
-          name: mouse-cfg-windows
+          name: mouse-solver-windows
           path: |
-            target/release/MouseCfg.exe
-            target/release/mouse-cfg.exe
-            target/release/mouse-cfg-kit.exe
+            target/release/MouseSolver.exe
+            target/release/mouse-solver.exe
+            target/release/mouse-solver-kit.exe

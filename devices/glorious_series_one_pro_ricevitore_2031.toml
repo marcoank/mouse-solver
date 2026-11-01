@@ -5,6 +5,7 @@ pid = 0x2031
 driver = "glorious"
 status = "experimental"
 notes = "Il mouse non permette di rileggere le impostazioni: si vede l'ultimo stato scritto da questa app. Ogni scrittura attiva il profilo 1. Sempre 4 stadi DPI. Modello non provato: secondo la tabella di Glorious CORE usa gli stessi comandi dei Model O/D Wireless."
+notes_en = "The mouse can't read its settings back: you see the last state written by this app. Every write activates profile 1. Always 4 DPI stages. Untested model: according to the Glorious CORE table it uses the same commands as the Model O/D Wireless."
 
 [glorious]
 family = "gp"

@@ -6,6 +6,7 @@ aliases = [[0x1E7D, 0x2CF3]]
 driver = "roccat_new"
 status = "experimental"
 notes = "DPI, stadio attivo e polling confermati da catture reali. Il significato dei byte degli effetti luce è dedotto dal Kova 2016: se le luci non fanno quello che chiedi, il resto non ne risente. Nessuna luminosità."
+notes_en = "DPI, active stage and polling confirmed by real captures. The meaning of the lighting effect bytes is deduced from the Kova 2016: if the lights don't do what you ask, the rest is unaffected. No brightness."
 
 [roccat_new]
 family = "kova_aimo"

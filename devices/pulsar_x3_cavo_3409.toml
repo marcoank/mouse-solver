@@ -5,6 +5,7 @@ pid = 0x3409
 driver = "pulsar"
 status = "experimental"
 notes = "L'X3 non ha LED. Si usa sempre il profilo 1 (sull'X3 la lettura del profilo attivo non risponde). Nessun comando di salvataggio documentato: dopo la prima modifica controlla che DPI e polling restino anche dopo aver scollegato il mouse. Chiudi Pulsar Fusion: quando parte riscrive le sue impostazioni."
+notes_en = "The X3 has no LEDs. Profile 1 is always used (on the X3 reading the active profile gets no response). No save command is documented: after the first change, check that DPI and polling persist after unplugging the mouse. Close Pulsar Fusion: when it starts it rewrites its own settings."
 
 [pulsar]
 family = "pulsar_s"

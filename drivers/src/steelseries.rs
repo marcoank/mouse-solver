@@ -147,13 +147,13 @@ fn send(dev: &HidDevice, c: &Cmd, payload: &[u8]) -> Result<()> {
     if c.packet_length > 0 && data.len() < c.packet_length + 1 {
         data.resize(c.packet_length + 1, 0);
     }
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
-        eprintln!("> {} {:02x?}", c.report, &data[1..]);
+    if mousecfg_core::trace::on() {
+        mousecfg_core::trace!("> {} {:02x?}", c.report, &data[1..]);
     }
     match c.report.as_str() {
         "output" => dev.write(&data).map(|_| ())?,
         "feature" => dev.send_feature_report(&data)?,
-        r => bail!("tipo di report '{r}' sconosciuto"),
+        r => bail!(tf!("tipo di report '{r}' sconosciuto", "unknown report type '{r}'")),
     }
     if c.readback > 0 {
         let mut buf = vec![0u8; c.readback];
@@ -178,7 +178,7 @@ fn le(v: u32, n: usize) -> Vec<u8> {
 fn gradient_packet(z: &Zone, stops: &[(u8, Rgb)], duration_ms: u16) -> Result<Vec<u8>> {
     let h = |k: &str| match z.header.get(k) {
         Some(toml_like::Value::Int(v)) => Ok(*v),
-        _ => bail!("intestazione '{k}' mancante"),
+        _ => bail!(tf!("intestazione '{k}' mancante", "header '{k}' missing")),
     };
     let mut header = vec![0u8; h("header_length")?];
     let led = z.led_id.unwrap_or(0);
@@ -206,7 +206,7 @@ fn gradient_packet(z: &Zone, stops: &[(u8, Rgb)], duration_ms: u16) -> Result<Ve
 fn gradient_v2_static(z: &Zone, c: Rgb) -> Result<Vec<u8>> {
     let field = match z.header.get("color_field_length") {
         Some(toml_like::Value::Int(v)) => *v,
-        _ => bail!("intestazione 'color_field_length' mancante"),
+        _ => bail!(t!("intestazione 'color_field_length' mancante", "header 'color_field_length' missing")),
     };
     let dlen = match z.header.get("duration_length") {
         Some(toml_like::Value::Int(v)) => *v,
@@ -239,11 +239,15 @@ impl SteelSeries {
         });
         let dev = match dev {
             Some(d) => d,
-            None if fw.is_some() => bail!("{} trovato ma non risponde. Prova a chiudere SteelSeries GG.", spec.name),
+            None if fw.is_some() => bail!(tf!(
+                "{} trovato ma non risponde. Prova a chiudere SteelSeries GG.",
+                "{} found but not responding. Try closing SteelSeries GG.",
+                spec.name
+            )),
             None => api
                 .device_list()
                 .find(|d| d.vendor_id() == vid && d.product_id() == pid && d.interface_number() == iface)
-                .context("interfaccia di controllo non trovata")?
+                .context(t!("interfaccia di controllo non trovata", "control interface not found"))?
                 .open_device(api)?,
         };
         let mut spec = spec.clone();
@@ -258,7 +262,7 @@ impl SteelSeries {
         // Non c'è read-back: dove possibile controllo almeno che il mouse risponda ancora.
         if let Some(c) = &self.cfg.firmware {
             if firmware(&self.dev, c).is_none() {
-                bail!("il mouse non risponde dopo la scrittura");
+                bail!(t!("il mouse non risponde dopo la scrittura", "the mouse does not respond after the write"));
             }
         }
         let mut s = cache::load(self.spec.vid, self.spec.pid);
@@ -268,12 +272,12 @@ impl SteelSeries {
     }
 
     fn code(&self, dpi: &Dpi, d: u16) -> Result<Vec<u8>> {
-        let code = dpi.codes.iter().find(|c| c[0] == d as u32).with_context(|| format!("DPI {d} non disponibile"))?[1];
+        let code = dpi.codes.iter().find(|c| c[0] == d as u32).with_context(|| tf!("DPI {d} non disponibile", "DPI {d} not available"))?[1];
         Ok(le(code, dpi.code_bytes))
     }
 
     fn zone(&self, name: &str) -> Result<&Zone> {
-        self.cfg.zones.iter().find(|z| z.zone == name).with_context(|| format!("zona '{name}' sconosciuta"))
+        self.cfg.zones.iter().find(|z| z.zone == name).with_context(|| tf!("zona '{name}' sconosciuta", "unknown zone '{name}'"))
     }
 }
 
@@ -309,13 +313,13 @@ impl MouseDriver for SteelSeries {
 
     fn set_dpi_stages(&mut self, stages: &[u16], active: usize) -> Result<()> {
         self.spec.caps.check_dpi_stages(stages, active)?;
-        let dpi = self.cfg.dpi.clone().context("DPI non configurabili su questo modello")?;
+        let dpi = self.cfg.dpi.clone().context(t!("DPI non configurabili su questo modello", "DPI not configurable on this model"))?;
         if dpi.mode == "presets" {
             for (c, &d) in dpi.cmds.iter().zip(stages) {
                 send(&self.dev, c, &self.code(&dpi, d)?)?;
             }
         } else {
-            let c = dpi.cmd.as_ref().context("comando DPI mancante")?;
+            let c = dpi.cmd.as_ref().context(t!("comando DPI mancante", "DPI command missing"))?;
             let count = match dpi.count_mode.as_str() {
                 "flag" => 0xFFu8 >> (8 - stages.len()),
                 _ => stages.len() as u8,
@@ -343,8 +347,8 @@ impl MouseDriver for SteelSeries {
 
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
-        let p = self.cfg.polling.as_ref().context("polling non configurabile")?;
-        let v = p.values.get(&hz.to_string()).context("polling non gestito")?;
+        let p = self.cfg.polling.as_ref().context(t!("polling non configurabile", "polling not configurable"))?;
+        let v = p.values.get(&hz.to_string()).context(t!("polling non gestito", "polling rate not supported"))?;
         send(&self.dev, &p.cmd, v)?;
         self.finish(|s| s.polling_hz = Some(hz))
     }
@@ -379,7 +383,7 @@ impl MouseDriver for SteelSeries {
                 )?,
                 "rgbgradient" => gradient_packet(&z, &[(0, color)], 1000)?,
                 "rgbgradientv2" => gradient_v2_static(&z, color)?,
-                k => bail!("formato colore '{k}' non gestito"),
+                k => bail!(tf!("formato colore '{k}' non gestito", "color format '{k}' not supported")),
             };
             send(&self.dev, &z.cmd, &payload)?;
         }
@@ -391,7 +395,7 @@ impl MouseDriver for SteelSeries {
     }
 
     fn set_brightness(&mut self, _zone: &str, value: u8) -> Result<()> {
-        let b = self.cfg.brightness.as_ref().context("questo mouse non ha un comando per la luminosità: usa un colore più scuro")?;
+        let b = self.cfg.brightness.as_ref().context(t!("questo mouse non ha un comando per la luminosità: usa un colore più scuro", "this mouse has no brightness command: use a darker color"))?;
         let v = (value as u32 * b.max + 127) / 255;
         send(&self.dev, &b.cmd, &le(v, b.code_bytes))?;
         // La luminosità è unica per tutto il mouse.

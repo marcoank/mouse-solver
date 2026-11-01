@@ -21,7 +21,6 @@ const VARSTORE: u8 = 0x01;
 const ALLOWED: &[(u8, u8)] = &[
     // letture
     (0x00, 0x81), // firmware
-    (0x00, 0x82), // seriale
     (0x00, 0x85), // polling
     (0x00, 0xC0), // polling HyperPolling
     (0x04, 0x85), // DPI
@@ -113,12 +112,12 @@ const V2_CODES: [(u8, u16); 7] = [(0x01, 8000), (0x02, 4000), (0x04, 2000), (0x0
 
 pub fn status_text(s: u8) -> &'static str {
     match s {
-        0x00 => "nuovo",
-        0x01 => "occupato",
+        0x00 => t!("nuovo", "new"),
+        0x01 => t!("occupato", "busy"),
         0x02 => "ok",
-        0x03 => "errore",
+        0x03 => t!("errore", "error"),
         0x04 => "timeout",
-        0x05 => "non supportato",
+        0x05 => t!("non supportato", "not supported"),
         _ => "?",
     }
 }
@@ -142,12 +141,12 @@ fn build(tid: u8, class: u8, id: u8, size: u8, args: &[u8]) -> [u8; LEN + 1] {
 /// Invia un comando e restituisce la risposta grezza (90 byte), qualunque sia lo stato.
 fn raw_transact(dev: &HidDevice, tid: u8, class: u8, id: u8, size: u8, args: &[u8]) -> Result<[u8; LEN]> {
     if !ALLOWED.contains(&(class, id)) {
-        bail!("comando {class:02x}/{id:02x} bloccato: non è nella lista dei comandi sicuri");
+        bail!(tf!("comando {class:02x}/{id:02x} bloccato: non è nella lista dei comandi sicuri", "command {class:02x}/{id:02x} blocked: not in the list of safe commands"));
     }
     let req = build(tid, class, id, size, args);
-    let debug = std::env::var_os("MOUSECFG_DEBUG").is_some();
+    let debug = mousecfg_core::trace::on();
     if debug {
-        eprintln!("> {}", hex(&req[1..16]));
+        mousecfg_core::trace!("> {}", hex(&req[1..16]));
     }
     dev.send_feature_report(&req)?;
     let mut last = [0u8; LEN];
@@ -159,7 +158,7 @@ fn raw_transact(dev: &HidDevice, tid: u8, class: u8, id: u8, size: u8, args: &[u
         let resp = if n == LEN + 1 { &buf[1..] } else { &buf[..LEN] };
         last.copy_from_slice(resp);
         if debug {
-            eprintln!("< {} (dopo {wait} ms)", hex(&last[..16]));
+            mousecfg_core::trace!("< {} (dopo {wait} ms)", hex(&last[..16]));
         }
         // 0x00 = non ancora elaborato, 0x01 = occupato: riproviamo a leggere.
         // Una risposta di un altro comando (es. di Synapse) va scartata.
@@ -175,7 +174,7 @@ impl Razer {
     pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Razer> {
         let cfg: RazerConfig = spec.section("razer")?;
         if !api.device_list().any(|d| d.vendor_id() == vid && d.product_id() == pid) {
-            bail!("{} non trovato. È collegato?", spec.name);
+            bail!(tf!("{} non trovato. È collegato?", "{} not found. Is it plugged in?", spec.name));
         }
         let tid = cfg.transaction_id;
         let dev = crate::open_first(
@@ -190,7 +189,11 @@ impl Razer {
             |dev| raw_transact(dev, tid, 0x00, 0x81, 0x02, &[]).is_ok_and(|r| r[0] == 0x02 && r[6] == 0x00 && r[7] == 0x81),
         )
         .with_context(|| {
-            format!("{} trovato ma non risponde. Prova a chiudere Razer Synapse (anche dall'icona vicino all'orologio).", spec.name)
+            tf!(
+                "{} trovato ma non risponde. Prova a chiudere Razer Synapse (anche dall'icona vicino all'orologio).",
+                "{} found but not responding. Try closing Razer Synapse (also from the icon near the clock).",
+                spec.name
+            )
         })?;
         let mut spec = spec.clone();
         (spec.vid, spec.pid) = (vid, pid);
@@ -206,16 +209,21 @@ impl Razer {
         let tid = self.cfg.transaction_ids.get(feature).copied().unwrap_or(self.cfg.transaction_id);
         let r = raw_transact(&self.dev, tid, class, id, size, args)?;
         if r[0] != 0x02 {
-            bail!("comando {class:02x}/{id:02x}: risposta '{}' (0x{:02x})", status_text(r[0]), r[0]);
+            bail!(tf!("comando {class:02x}/{id:02x}: risposta '{}' (0x{:02x})", "command {class:02x}/{id:02x}: reply '{}' (0x{:02x})", status_text(r[0]), r[0]));
         }
         if r[6] != class || r[7] != id {
-            bail!("comando {class:02x}/{id:02x}: risposta per un altro comando ({:02x}/{:02x})", r[6], r[7]);
+            bail!(tf!(
+                "comando {class:02x}/{id:02x}: risposta per un altro comando ({:02x}/{:02x})",
+                "command {class:02x}/{id:02x}: reply to a different command ({:02x}/{:02x})",
+                r[6],
+                r[7]
+            ));
         }
         Ok(r)
     }
 
     fn led(&self, zone: &str) -> Result<u8> {
-        self.cfg.leds.get(zone).copied().with_context(|| format!("zona '{zone}' senza ID LED nel file TOML"))
+        self.cfg.leds.get(zone).copied().with_context(|| tf!("zona '{zone}' senza ID LED nel file TOML", "zone '{zone}' has no LED ID in the TOML file"))
     }
 
     fn read_dpi(&self) -> Result<u16> {
@@ -239,7 +247,7 @@ impl Razer {
             stages.push(u16::from_be_bytes([r[o + 1], r[o + 2]]));
         }
         if stages.is_empty() {
-            bail!("il mouse non riporta stadi DPI");
+            bail!(t!("il mouse non riporta stadi DPI", "the mouse reports no DPI stages"));
         }
         Ok(DpiStages { stages, active })
     }
@@ -252,14 +260,14 @@ impl Razer {
                     0x01 => 1000,
                     0x02 => 500,
                     0x08 => 125,
-                    c => bail!("codice polling sconosciuto 0x{c:02x}"),
+                    c => bail!(tf!("codice polling sconosciuto 0x{c:02x}", "unknown polling code 0x{c:02x}")),
                 })
             }
             Polling::V2 | Polling::V2Dual => {
                 let r = self.cmd_for("polling", 0x00, 0xC0, 0x01, &[])?;
-                V2_CODES.iter().find(|(c, _)| *c == r[9]).map(|(_, hz)| *hz).context("codice polling sconosciuto")
+                V2_CODES.iter().find(|(c, _)| *c == r[9]).map(|(_, hz)| *hz).context(t!("codice polling sconosciuto", "unknown polling code"))
             }
-            Polling::None => bail!("polling non configurabile"),
+            Polling::None => bail!(t!("polling non configurabile", "polling not configurable")),
         }
     }
 
@@ -313,7 +321,7 @@ impl Razer {
                     0x02
                 }
                 Effect::Spectrum => 0x04,
-                ref e => bail!("effetto '{}' non disponibile sui Razer con LED classici", e.name()),
+                ref e => bail!(tf!("effetto '{}' non disponibile sui Razer con LED classici", "effect '{}' not available on Razer mice with classic LEDs", e.name())),
             };
             l(0x00, 0x03, &[VARSTORE, led, 0x01])?;
             return l(0x02, 0x03, &[VARSTORE, led, effect_id]);
@@ -325,7 +333,7 @@ impl Razer {
             Effect::Spectrum => (0x06, vec![VARSTORE, led, 0x03, 0, 0, 0]),
             Effect::Wave { reverse } => (0x06, vec![VARSTORE, led, 0x04, reverse as u8, 0x28, 0]),
             Effect::Reactive { color: Rgb(r, g, b) } => (0x09, vec![VARSTORE, led, 0x05, 0, 0x02, 0x01, r, g, b]),
-            Effect::Unknown { code } => bail!("effetto sconosciuto 0x{code:02x}: non lo scrivo"),
+            Effect::Unknown { code } => bail!(tf!("effetto sconosciuto 0x{code:02x}: non lo scrivo", "unknown effect 0x{code:02x}: not writing it")),
         };
         self.cmd_for("lighting", 0x0F, 0x02, size, &args).map(|_| ())
     }
@@ -338,18 +346,14 @@ impl MouseDriver for Razer {
 
     fn identify(&mut self) -> Result<DeviceInfo> {
         let fw = self.cmd(0x00, 0x81, 0x02, &[]).ok().map(|r| format!("v{}.{}", r[8], r[9]));
-        let serial = self.cmd(0x00, 0x82, 0x16, &[]).ok().map(|r| {
-            let s = &r[8..8 + 22];
-            let end = s.iter().position(|&b| b == 0).unwrap_or(s.len());
-            String::from_utf8_lossy(&s[..end]).trim().to_string()
-        });
+        // Il numero di serie non lo leggiamo: finirebbe nel registro allegato ai report pubblici.
         Ok(DeviceInfo {
             name: self.spec.name.clone(),
             vid: self.spec.vid,
             pid: self.spec.pid,
             status: self.spec.status,
             firmware: fw,
-            serial,
+            serial: None,
         })
     }
 
@@ -374,14 +378,14 @@ impl MouseDriver for Razer {
     fn set_dpi_stages(&mut self, stages: &[u16], active: usize) -> Result<()> {
         self.spec.caps.check_dpi_stages(stages, active)?;
         if !self.cfg.dpi {
-            bail!("DPI non configurabili su questo modello");
+            bail!(t!("DPI non configurabili su questo modello", "DPI not configurable on this model"));
         }
         if !self.cfg.dpi_stages {
             let [h, l] = stages[0].to_be_bytes();
             self.cmd_for("dpi", 0x04, 0x05, 0x07, &[VARSTORE, h, l, h, l, 0, 0])?;
             let back = self.read_dpi()?;
             if back != stages[0] {
-                bail!("verifica fallita: DPI {back} invece di {}", stages[0]);
+                bail!(tf!("verifica fallita: DPI {back} invece di {}", "check failed: DPI {back} instead of {}", stages[0]));
             }
             return Ok(());
         }
@@ -398,11 +402,11 @@ impl MouseDriver for Razer {
 
         let back = self.read_stages()?;
         if back.stages != stages || back.active != active {
-            bail!("verifica fallita: il mouse riporta stadi {:?} attivo {}", back.stages, back.active + 1);
+            bail!(tf!("verifica fallita: il mouse riporta stadi {:?} attivo {}", "check failed: the mouse reports stages {:?} active {}", back.stages, back.active + 1));
         }
         let dpi = self.read_dpi()?;
         if dpi != stages[active] {
-            bail!("verifica fallita: DPI attuale {dpi} invece di {}", stages[active]);
+            bail!(tf!("verifica fallita: DPI attuale {dpi} invece di {}", "check failed: current DPI {dpi} instead of {}", stages[active]));
         }
         Ok(())
     }
@@ -415,22 +419,22 @@ impl MouseDriver for Razer {
                     1000 => 0x01,
                     500 => 0x02,
                     125 => 0x08,
-                    _ => bail!("polling {hz} Hz non gestito dal protocollo Razer standard"),
+                    _ => bail!(tf!("polling {hz} Hz non gestito dal protocollo Razer standard", "polling {hz} Hz not supported by the standard Razer protocol")),
                 };
                 self.cmd_for("polling", 0x00, 0x05, 0x01, &[code])?;
             }
             Polling::V2 | Polling::V2Dual => {
-                let code = V2_CODES.iter().find(|(_, h)| *h == hz).map(|(c, _)| *c).context("polling non gestito")?;
+                let code = V2_CODES.iter().find(|(_, h)| *h == hz).map(|(c, _)| *c).context(t!("polling non gestito", "polling rate not supported"))?;
                 self.cmd_for("polling", 0x00, 0x40, 0x02, &[0x00, code])?;
                 if self.cfg.polling == Polling::V2Dual {
                     self.cmd_for("polling", 0x00, 0x40, 0x02, &[0x01, code])?;
                 }
             }
-            Polling::None => bail!("polling non configurabile su questo modello"),
+            Polling::None => bail!(t!("polling non configurabile su questo modello", "polling not configurable on this model")),
         }
         let back = self.read_polling()?;
         if back != hz {
-            bail!("verifica fallita: il mouse riporta {back} Hz");
+            bail!(tf!("verifica fallita: il mouse riporta {back} Hz", "check failed: the mouse reports {back} Hz"));
         }
         Ok(())
     }
@@ -441,14 +445,14 @@ impl MouseDriver for Razer {
         self.write_effect(led, effect)?;
         let back = self.read_effect(led)?;
         if back.name() != effect.name() || back.color() != effect.color() {
-            bail!("verifica fallita su {zone}: il mouse riporta {back}");
+            bail!(tf!("verifica fallita su {zone}: il mouse riporta {back}", "check failed on {zone}: the mouse reports {back}"));
         }
         Ok(())
     }
 
     fn set_brightness(&mut self, zone: &str, value: u8) -> Result<()> {
         if !self.cfg.brightness {
-            bail!("luminosità non configurabile su questo modello");
+            bail!(t!("luminosità non configurabile su questo modello", "brightness not configurable on this model"));
         }
         let led = self.led(zone)?;
         match self.cfg.lighting {
@@ -457,7 +461,7 @@ impl MouseDriver for Razer {
         };
         let back = self.read_brightness(led)?;
         if back != value {
-            bail!("verifica fallita su {zone}: luminosità {back} invece di {value}");
+            bail!(tf!("verifica fallita su {zone}: luminosità {back} invece di {value}", "check failed on {zone}: brightness {back} instead of {value}"));
         }
         Ok(())
     }
@@ -483,14 +487,11 @@ pub fn probe_unknown(api: &HidApi, vid: u16, pid: u16) -> serde_json::Value {
             let mut reads = serde_json::Map::new();
             for (name, class, id, size, args) in [
                 ("firmware", 0x00, 0x81, 0x02, vec![]),
-                ("serial_raw_len", 0x00, 0x82, 0x16, vec![]),
                 ("polling", 0x00, 0x85, 0x01, vec![]),
                 ("dpi", 0x04, 0x85, 0x07, vec![VARSTORE]),
                 ("dpi_stages", 0x04, 0x86, 0x26, vec![VARSTORE]),
             ] {
                 let v = match raw_transact(&dev, tid, class, id, size, &args) {
-                    // il seriale non lo salviamo: solo lo stato della risposta
-                    Ok(r) if name == "serial_raw_len" => json!(status_text(r[0])),
                     Ok(r) => json!({ "status": status_text(r[0]), "raw": hex(&r) }),
                     Err(e) => json!(e.to_string()),
                 };

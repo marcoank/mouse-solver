@@ -3,3 +3,4 @@
 *.pcapng
 report_*.json
 __pycache__/
+/dist

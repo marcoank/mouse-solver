@@ -88,33 +88,33 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
     let cfg: CompxConfig = spec.section("compx")?;
     let c = &spec.caps;
     if !matches!(cfg.reply_id, 8 | 9) {
-        bail!("reply_id deve essere 8 o 9");
+        bail!(t!("reply_id deve essere 8 o 9", "reply_id must be 8 or 9"));
     }
     if cfg.usage_page != 0 && cfg.usage_page < 0xFF00 {
-        bail!("usage_page deve essere una pagina vendor (>= 0xFF00)");
+        bail!(t!("usage_page deve essere una pagina vendor (>= 0xFF00)", "usage_page must be a vendor page (>= 0xFF00)"));
     }
     // Codifica DPI documentata solo a passi di 50, con al massimo 10 bit (26000 = limite delle fonti).
     if c.dpi_step != 50 || c.dpi_min < 50 || c.dpi_min % 50 != 0 || c.dpi_max > 26000 || !c.dpi_values.is_empty() {
-        bail!("DPI: servono passi da 50 tra 50 e 26000");
+        bail!(t!("DPI: servono passi da 50 tra 50 e 26000", "DPI: steps of 50 between 50 and 26000 required"));
     }
     if c.max_stages as usize > SLOTS || c.min_stages < 1 {
-        bail!("al massimo {SLOTS} stadi");
+        bail!(tf!("al massimo {SLOTS} stadi", "at most {SLOTS} stages"));
     }
     if !cfg.write_stage_count && c.min_stages != c.max_stages {
-        bail!("con write_stage_count = false il numero di stadi è fisso: min_stages = max_stages");
+        bail!(t!("con write_stage_count = false il numero di stadi è fisso: min_stages = max_stages", "with write_stage_count = false the number of stages is fixed: min_stages = max_stages"));
     }
     if let Some(hz) = c.polling.iter().find(|&&hz| rate_code(hz).is_none()) {
-        bail!("polling {hz} Hz non esiste in questo protocollo");
+        bail!(tf!("polling {hz} Hz non esiste in questo protocollo", "polling {hz} Hz does not exist in this protocol"));
     }
     if cfg.dpi_led {
         if c.zones != ["dpi"] {
-            bail!("con dpi_led la sola zona è \"dpi\"");
+            bail!(t!("con dpi_led la sola zona è \"dpi\"", "with dpi_led the only zone is \"dpi\""));
         }
         if let Some(e) = c.effects.iter().find(|e| !matches!(e.as_str(), "static" | "breathing" | "off")) {
-            bail!("effetto '{e}' non gestito dalla spia DPI");
+            bail!(tf!("effetto '{e}' non gestito dalla spia DPI", "effect '{e}' not supported by the DPI indicator"));
         }
     } else if !c.zones.is_empty() || !c.effects.is_empty() {
-        bail!("zone ed effetti richiedono dpi_led = true");
+        bail!(t!("zone ed effetti richiedono dpi_led = true", "zones and effects require dpi_led = true"));
     }
     Ok(())
 }
@@ -122,7 +122,7 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
 /// Apre il mouse e restituisce il driver.
 pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<dyn MouseDriver>> {
     let cfg: CompxConfig = spec.section("compx")?;
-    let debug = std::env::var_os("MOUSECFG_DEBUG").is_some();
+    let debug = mousecfg_core::trace::on();
     let mut infos: Vec<_> = api
         .device_list()
         .filter(|d| d.vendor_id() == vid && d.product_id() == pid)
@@ -144,10 +144,11 @@ pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<d
             return Ok(Box::new(drv));
         }
     }
-    bail!(
+    bail!(tf!(
         "{} trovato ma non risponde. Se è wireless muovilo per svegliarlo, chiudi il software del produttore e riprova.",
+        "{} found but not responding. If it's wireless, move it to wake it, close the manufacturer's software and try again.",
         spec.name
-    )
+    ))
 }
 
 /// La collezione deve dichiarare il report 0x08 (feature per Endgame, altrimenti cerca l'item "Report ID 8").
@@ -283,7 +284,7 @@ pub struct Compx {
 impl Compx {
     fn log(&self, dir: &str, b: &[u8]) {
         if self.debug {
-            eprintln!("{dir} {}", hex(b));
+            mousecfg_core::trace!("{dir} {}", hex(b));
         }
     }
 
@@ -302,7 +303,7 @@ impl Compx {
     /// stesso indirizzo e lunghezza). Riprova 3 volte: i wireless addormentati perdono la prima.
     fn transact(&self, cmd: u8, addr: u16, len: usize, data: &[u8]) -> Result<[u8; LEN]> {
         if !allowed(&self.cfg, &self.spec.caps, cmd, addr, len, data) {
-            bail!("comando 0x{cmd:02x} all'indirizzo 0x{addr:04x} non ammesso: bloccato per sicurezza");
+            bail!(tf!("comando 0x{cmd:02x} all'indirizzo 0x{addr:04x} non ammesso: bloccato per sicurezza", "command 0x{cmd:02x} at address 0x{addr:04x} not allowed: blocked for safety"));
         }
         let req = build(cmd, addr, len, data);
         for _ in 0..3 {
@@ -330,7 +331,7 @@ impl Compx {
                         continue;
                     }
                     if buf[2] != 0 {
-                        bail!("il mouse ha rifiutato la lettura di 0x{addr:04x} (stato {})", buf[2]);
+                        bail!(tf!("il mouse ha rifiutato la lettura di 0x{addr:04x} (stato {})", "the mouse rejected the read of 0x{addr:04x} (status {})", buf[2]));
                     }
                 }
                 // Per le scritture lo stato non è documentato per tutti i marchi: decide la rilettura.
@@ -339,7 +340,7 @@ impl Compx {
                 return Ok(out);
             }
         }
-        bail!("{} non risponde. Se è wireless muovilo per svegliarlo e riprova.", self.spec.name)
+        bail!(tf!("{} non risponde. Se è wireless muovilo per svegliarlo e riprova.", "{} is not responding. If it's wireless, move it to wake it and try again.", self.spec.name))
     }
 
     fn read_range(&self, addr: u16, len: usize) -> Result<Vec<u8>> {
@@ -356,7 +357,7 @@ impl Compx {
     fn read_image(&self) -> Result<Vec<u8>> {
         let img = self.read_range(0, IMAGE_LEN)?;
         if !header_ok(&img) {
-            bail!("dati letti dal mouse non validi (byte di controllo errati): non scrivo nulla");
+            bail!(t!("dati letti dal mouse non validi (byte di controllo errati): non scrivo nulla", "invalid data read from the mouse (wrong check bytes): nothing written"));
         }
         Ok(img)
     }
@@ -370,11 +371,12 @@ impl Compx {
         self.transact(CMD_WRITE, addr, data.len(), data)?;
         let back = self.read_range(addr, data.len())?;
         if back != data {
-            bail!(
+            bail!(tf!(
                 "verifica fallita all'indirizzo 0x{addr:04x}: scritto {}, riletto {}",
+                "verification failed at address 0x{addr:04x}: wrote {}, read back {}",
                 hex(data),
                 hex(&back)
-            );
+            ));
         }
         img[a..a + data.len()].copy_from_slice(data);
         Ok(())
@@ -449,9 +451,9 @@ impl MouseDriver for Compx {
     fn set_dpi_stages(&mut self, stages: &[u16], active: usize) -> Result<()> {
         self.spec.caps.check_dpi_stages(stages, active)?;
         let mut img = self.read_image()?;
-        let old_count = read_scalar(&img, ADDR_COUNT).context("numero di stadi illeggibile")? as usize;
+        let old_count = read_scalar(&img, ADDR_COUNT).context(t!("numero di stadi illeggibile", "number of stages unreadable"))? as usize;
         if !self.cfg.write_stage_count && stages.len() != old_count {
-            bail!("questo mouse ha {old_count} stadi DPI e il loro numero non si cambia da qui");
+            bail!(tf!("questo mouse ha {old_count} stadi DPI e il loro numero non si cambia da qui", "this mouse has {old_count} DPI stages and their number can't be changed from here"));
         }
         // Prima i valori degli stadi (gli altri slot restano come sono)...
         for (i, &d) in stages.iter().enumerate() {
@@ -482,7 +484,7 @@ impl MouseDriver for Compx {
 
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
-        let code = rate_code(hz).context("polling non gestito")?;
+        let code = rate_code(hz).context(t!("polling non gestito", "polling rate not supported"))?;
         let mut img = self.read_image()?;
         self.write_field(&mut img, ADDR_POLLING, &scalar(code))
     }
@@ -490,14 +492,14 @@ impl MouseDriver for Compx {
     fn set_lighting(&mut self, zone: &str, effect: &Effect) -> Result<()> {
         self.spec.caps.check_effect(zone, effect)?;
         if !self.cfg.dpi_led {
-            bail!("questo mouse non ha luci configurabili");
+            bail!(t!("questo mouse non ha luci configurabili", "this mouse has no configurable lighting"));
         }
         let mut img = self.read_image()?;
         let mode = match effect {
             Effect::Off => None,
             Effect::Static { .. } => Some(LED_STEADY),
             Effect::Breathing { .. } => Some(LED_BREATHE),
-            e => bail!("effetto '{}' non gestito", e.name()),
+            e => bail!(tf!("effetto '{}' non gestito", "effect '{}' not supported", e.name())),
         };
         let Some(mode) = mode else {
             // "Spento" = spia disattivata (0x52), l'effetto salvato resta com'è.
@@ -517,7 +519,7 @@ impl MouseDriver for Compx {
 
     fn set_brightness(&mut self, zone: &str, value: u8) -> Result<()> {
         if !self.cfg.dpi_led || !self.spec.caps.zones.iter().any(|z| z == zone) {
-            bail!("zona '{zone}' non esiste");
+            bail!(tf!("zona '{zone}' non esiste", "zone '{zone}' does not exist"));
         }
         let mut img = self.read_image()?;
         self.write_field(&mut img, ADDR_LED_BRIGHTNESS, &scalar(value))

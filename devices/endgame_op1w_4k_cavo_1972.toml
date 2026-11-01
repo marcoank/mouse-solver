@@ -5,6 +5,7 @@ pid = 0x1972
 driver = "endgame"
 status = "experimental"
 notes = "Via cavo il mouse va sempre a 1000 Hz: il polling impostato vale quando usi il ricevitore. Lo stadio attivo si cambia solo col tasto DPI. Il LED ha colori fissi: niente luci."
+notes_en = "When wired the mouse always runs at 1000 Hz: the polling you set applies when using the receiver. The active stage can only be changed with the DPI button. The LED has fixed colors: no lighting."
 
 [endgame]
 family = "4k"

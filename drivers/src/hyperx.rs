@@ -56,7 +56,7 @@ impl HyperxConfig {
             "dart" => Family::Dart,
             "haste" => Family::Haste,
             "saga" => Family::Saga,
-            f => bail!("famiglia HyperX '{f}' sconosciuta (dart, haste, saga)"),
+            f => bail!(mousecfg_core::tf!("famiglia HyperX '{f}' sconosciuta (dart, haste, saga)", "unknown HyperX family '{f}' (dart, haste, saga)")),
         })
     }
 }
@@ -184,7 +184,7 @@ fn dart_led_packet(led: u8, effect: &Effect, bri: u8) -> Result<Vec<u8>> {
         Effect::Breathing { color } => (0x20, *color, SPEED_MED),
         Effect::Spectrum => (0x12, Rgb(255, 255, 255), SPEED_MED),
         Effect::Off => (0x00, Rgb(0, 0, 0), 0x00),
-        e => bail!("effetto '{}' non supportato dal Dart", e.name()),
+        e => bail!(mousecfg_core::tf!("effetto '{}' non supportato dal Dart", "effect '{}' not supported by the Dart", e.name())),
     };
     Ok(vec![0xD2, led, mode, 0x08, c.0, c.1, c.2, c.0, c.1, c.2, bri.min(100), speed])
 }
@@ -297,7 +297,7 @@ fn output_report_ids(desc: &[u8]) -> Vec<u8> {
 }
 
 fn debug() -> bool {
-    std::env::var_os("MOUSECFG_DEBUG").is_some()
+    mousecfg_core::trace::on()
 }
 
 pub struct HyperX {
@@ -335,7 +335,7 @@ pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<d
             return Ok(Box::new(drv));
         }
     }
-    bail!("{} trovato ma non risponde. Chiudi HyperX NGenuity e riprova.", spec.name)
+    bail!(mousecfg_core::tf!("{} trovato ma non risponde. Chiudi HyperX NGenuity e riprova.", "{} found but not responding. Close HyperX NGenuity and try again.", spec.name))
 }
 
 /// Controlla che la sezione del driver nel file TOML sia valida (usato dai test del database).
@@ -344,7 +344,7 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
     let f = cfg.family()?;
     let c = &spec.caps;
     if f != Family::Saga && cfg.usage_page.is_none() {
-        bail!("manca usage_page");
+        bail!(mousecfg_core::t!("manca usage_page", "usage_page is missing"));
     }
     let (unit, max, stages) = match f {
         Family::Dart => (50, 16000, 1..=5),
@@ -352,19 +352,19 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
         Family::Saga => (50, 26000, 4..=4),
     };
     if c.dpi_min < unit || c.dpi_max > max || c.dpi_step % unit != 0 || c.dpi_min % unit != 0 {
-        bail!("limiti DPI non validi per la famiglia {}", cfg.family);
+        bail!(mousecfg_core::tf!("limiti DPI non validi per la famiglia {}", "invalid DPI limits for the {} family", cfg.family));
     }
     if !stages.contains(&c.min_stages) || !stages.contains(&c.max_stages) {
-        bail!("numero di stadi DPI non valido per la famiglia {}", cfg.family);
+        bail!(mousecfg_core::tf!("numero di stadi DPI non valido per la famiglia {}", "invalid number of DPI stages for the {} family", cfg.family));
     }
     if let Some(hz) = c.polling.iter().find(|&&hz| polling_code(f, hz).is_none()) {
-        bail!("polling {hz} Hz non gestito dalla famiglia {}", cfg.family);
+        bail!(mousecfg_core::tf!("polling {hz} Hz non gestito dalla famiglia {}", "polling {hz} Hz not supported by the {} family", cfg.family));
     }
     if let Some(z) = c.zones.iter().find(|z| !family_zones(f).contains(&z.as_str())) {
-        bail!("zona '{z}' non gestita dalla famiglia {}", cfg.family);
+        bail!(mousecfg_core::tf!("zona '{z}' non gestita dalla famiglia {}", "zone '{z}' not supported by the {} family", cfg.family));
     }
     if let Some(e) = c.effects.iter().find(|e| !family_effects(f).contains(&e.as_str())) {
-        bail!("effetto '{e}' non gestito dalla famiglia {}", cfg.family);
+        bail!(mousecfg_core::tf!("effetto '{e}' non gestito dalla famiglia {}", "effect '{e}' not supported by the {} family", cfg.family));
     }
     Ok(())
 }
@@ -372,7 +372,7 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
 impl HyperX {
     fn send(&self, payload: &[u8]) -> Result<()> {
         if payload.is_empty() || !allowed(self.family, payload) {
-            bail!("comando {:02x?} non consentito: non viene inviato", &payload[..payload.len().min(8)]);
+            bail!(mousecfg_core::tf!("comando {:02x?} non consentito: non viene inviato", "command {:02x?} not allowed: it will not be sent", &payload[..payload.len().min(8)]));
         }
         let data = match self.family {
             // l'ID del report è il primo byte del pacchetto
@@ -390,9 +390,9 @@ impl HyperX {
             }
         };
         if debug() {
-            eprintln!("> {:02x?}", &payload);
+            mousecfg_core::trace!("> {:02x?}", &payload);
         }
-        self.dev.write(&data).context("scrittura sul mouse non riuscita")?;
+        self.dev.write(&data).context(mousecfg_core::t!("scrittura sul mouse non riuscita", "writing to the mouse failed"))?;
         sleep(Duration::from_millis(if self.family == Family::Saga { 40 } else { 10 }));
         Ok(())
     }
@@ -400,7 +400,7 @@ impl HyperX {
     fn send_all(&self, packets: &[Vec<u8>]) -> Result<()> {
         // prima controllo tutto: o parte l'intera sequenza o niente
         if let Some(p) = packets.iter().find(|p| p.is_empty() || !allowed(self.family, p)) {
-            bail!("comando {:02x?} non consentito: non viene inviato", &p[..p.len().min(8)]);
+            bail!(mousecfg_core::tf!("comando {:02x?} non consentito: non viene inviato", "command {:02x?} not allowed: it will not be sent", &p[..p.len().min(8)]));
         }
         packets.iter().try_for_each(|p| self.send(p))
     }
@@ -418,13 +418,13 @@ impl HyperX {
             // alcuni sistemi lasciano lo 0 del report ID in testa
             let r = if n == 65 && buf[0] == 0 { &buf[1..n] } else { &buf[..n] };
             if debug() {
-                eprintln!("< {:02x?}", r);
+                mousecfg_core::trace!("< {:02x?}", r);
             }
             if r.len() >= 2 && r[0] == id && r[1] == sub {
                 return Ok(r.to_vec());
             }
         }
-        bail!("il mouse non risponde (è acceso? NGenuity è chiuso?)")
+        bail!(mousecfg_core::t!("il mouse non risponde (è acceso? NGenuity è chiuso?)", "the mouse is not responding (is it on? is NGenuity closed?)"))
     }
 
     fn hardware_info(&self) -> Result<Vec<u8>> {
@@ -444,7 +444,7 @@ impl HyperX {
     /// Dopo una scrittura senza rilettura: controlla che il mouse risponda e aggiorna la cache.
     fn finish(&self, update: impl FnOnce(&mut MouseState)) -> Result<()> {
         if self.family != Family::Saga && self.hardware_info().is_err() {
-            bail!("il mouse non risponde dopo la scrittura");
+            bail!(mousecfg_core::t!("il mouse non risponde dopo la scrittura", "the mouse is not responding after the write"));
         }
         let mut s = cache::load(self.spec.vid, self.spec.pid);
         update(&mut s);
@@ -465,7 +465,7 @@ impl HyperX {
                 let led = match zone {
                     "logo" => 0x00,
                     "scroll" => 0x10,
-                    z => bail!("zona '{z}' sconosciuta"),
+                    z => bail!(mousecfg_core::tf!("zona '{z}' sconosciuta", "unknown zone '{z}'")),
                 };
                 self.send_all(&[dart_led_packet(led, effect, pct(bri))?, SAVE_ALL.to_vec()])?;
             }
@@ -473,7 +473,7 @@ impl HyperX {
                 let c = match effect {
                     Effect::Static { color } => *color,
                     Effect::Off => Rgb(0, 0, 0),
-                    e => bail!("effetto '{}' non supportato", e.name()),
+                    e => bail!(mousecfg_core::tf!("effetto '{}' non supportato", "effect '{}' not supported", e.name())),
                 };
                 self.send_all(&haste_static_sequence(scale(c, pct(bri))))?;
             }
@@ -481,7 +481,7 @@ impl HyperX {
                 let c = match effect {
                     Effect::Static { color } => *color,
                     Effect::Off => Rgb(0, 0, 0),
-                    e => bail!("effetto '{}' non supportato", e.name()),
+                    e => bail!(mousecfg_core::tf!("effetto '{}' non supportato", "effect '{}' not supported", e.name())),
                 };
                 self.send_all(&saga_rgb_sequence(c, bri))?;
             }
@@ -559,7 +559,7 @@ impl MouseDriver for HyperX {
         if f == Family::Haste {
             sleep(Duration::from_millis(100));
             if self.read_haste_dpi()?.as_ref() != Some(&want) {
-                bail!("verifica fallita: il mouse non ha salvato gli stadi DPI come inviati");
+                bail!(mousecfg_core::t!("verifica fallita: il mouse non ha salvato gli stadi DPI come inviati", "verification failed: the mouse did not save the DPI stages as sent"));
             }
             return Ok(());
         }
@@ -569,11 +569,11 @@ impl MouseDriver for HyperX {
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
         let f = self.family;
-        let code = polling_code(f, hz).context("polling non gestito")?;
+        let code = polling_code(f, hz).context(mousecfg_core::t!("polling non gestito", "polling rate not supported"))?;
         if f == Family::Saga {
             let s = cache::load(self.spec.vid, self.spec.pid);
             let Some(d) = s.dpi_stages.filter(|d| d.stages.len() == 4) else {
-                bail!("su questo mouse polling e DPI si scrivono insieme: imposta prima gli stadi DPI");
+                bail!(mousecfg_core::t!("su questo mouse polling e DPI si scrivono insieme: imposta prima gli stadi DPI", "on this mouse polling and DPI are written together: set the DPI stages first"));
             };
             self.send_all(&saga_polling_sequence(&d.stages, d.active, code))?;
         } else {
@@ -583,7 +583,7 @@ impl MouseDriver for HyperX {
         if f == Family::Haste {
             sleep(Duration::from_millis(100));
             if self.read_haste_polling()? != Some(hz) {
-                bail!("verifica fallita: il polling letto non è {hz} Hz");
+                bail!(mousecfg_core::tf!("verifica fallita: il polling letto non è {hz} Hz", "verification failed: the polling read back is not {hz} Hz"));
             }
             return Ok(());
         }
@@ -598,11 +598,11 @@ impl MouseDriver for HyperX {
 
     fn set_brightness(&mut self, zone: &str, value: u8) -> Result<()> {
         if !self.spec.caps.zones.iter().any(|z| z == zone) {
-            bail!("zona '{zone}' non esiste");
+            bail!(mousecfg_core::tf!("zona '{zone}' non esiste", "zone '{zone}' does not exist"));
         }
         // La luminosità viaggia nello stesso pacchetto dell'effetto: serve sapere quale riscrivere.
         let (effect, _) = self.cached_zone(zone);
-        let effect = effect.context("scegli prima un effetto per questa zona")?;
+        let effect = effect.context(mousecfg_core::t!("scegli prima un effetto per questa zona", "choose an effect for this zone first"))?;
         self.write_lighting(zone, &effect, value)
     }
 }

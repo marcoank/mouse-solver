@@ -1,5 +1,5 @@
 //! Ultimi valori scritti, per i mouse che non permettono di rileggere le impostazioni
-//! (es. SteelSeries Rival 310). Salvati in %APPDATA%\mouse-cfg\last\<vid>_<pid>.json.
+//! (es. SteelSeries Rival 310). Salvati in %APPDATA%\mouse-solver\last\<vid>_<pid>.json.
 
 use crate::types::MouseState;
 use std::path::PathBuf;

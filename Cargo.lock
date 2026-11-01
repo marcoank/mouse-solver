@@ -970,8 +970,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "mouse-cfg"
-version = "0.1.0"
+name = "mouse-solver"
+version = "0.1.0-beta.1"
 dependencies = [
  "anyhow",
  "mousecfg-core",
@@ -980,18 +980,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "mouse-cfg-gui"
-version = "0.1.0"
+name = "mouse-solver-gui"
+version = "0.1.0-beta.1"
 dependencies = [
  "anyhow",
  "eframe",
  "mousecfg-core",
  "mousecfg-drivers",
+ "serde_json",
 ]
 
 [[package]]
-name = "mouse-cfg-kit"
-version = "0.1.0"
+name = "mouse-solver-kit"
+version = "0.1.0-beta.1"
 dependencies = [
  "anyhow",
  "mousecfg-core",
@@ -1001,7 +1002,7 @@ dependencies = [
 
 [[package]]
 name = "mousecfg-core"
-version = "0.1.0"
+version = "0.1.0-beta.1"
 dependencies = [
  "anyhow",
  "serde",
@@ -1012,7 +1013,7 @@ dependencies = [
 
 [[package]]
 name = "mousecfg-drivers"
-version = "0.1.0"
+version = "0.1.0-beta.1"
 dependencies = [
  "anyhow",
  "hidapi",

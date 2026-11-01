@@ -67,16 +67,16 @@ const MAX_STAGES: usize = 6;
 const LED_ZONE: &str = "dpi";
 
 fn debug(dir: &str, data: &[u8]) {
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
+    if mousecfg_core::trace::on() {
         // Gli zeri finali non dicono niente: li taglio (lasciando almeno 8 byte).
         let n = data.iter().rposition(|&b| b != 0).map_or(0, |i| i + 1).max(8).min(data.len());
-        eprintln!("{dir} {:02x?}", &data[..n]);
+        mousecfg_core::trace!("{dir} {:02x?}", &data[..n]);
     }
 }
 
 fn note(msg: &str) {
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
-        eprintln!("pulsar: {msg}");
+    if mousecfg_core::trace::on() {
+        mousecfg_core::trace!("pulsar: {msg}");
     }
 }
 
@@ -96,40 +96,40 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
     let cfg: PulsarConfig = spec.section("pulsar")?;
     let caps = &spec.caps;
     if caps.max_stages as usize > MAX_STAGES || caps.min_stages == 0 {
-        bail!("stadi DPI ammessi: da 1 a {MAX_STAGES}");
+        bail!(tf!("stadi DPI ammessi: da 1 a {MAX_STAGES}", "allowed DPI stages: 1 to {MAX_STAGES}"));
     }
     match cfg.family {
         Family::PulsarS => {
             if spec.vid != 0x3710 {
-                bail!("la famiglia pulsar_s usa solo il VID 0x3710");
+                bail!(t!("la famiglia pulsar_s usa solo il VID 0x3710", "the pulsar_s family only uses VID 0x3710"));
             }
             for &hz in &caps.polling {
-                s_poll_code(hz).with_context(|| format!("polling {hz} Hz non codificabile"))?;
+                s_poll_code(hz).with_context(|| tf!("polling {hz} Hz non codificabile", "polling {hz} Hz cannot be encoded"))?;
             }
             if !(1..=6).contains(&cfg.profiles) {
-                bail!("profiles deve essere tra 1 e 6");
+                bail!(t!("profiles deve essere tra 1 e 6", "profiles must be between 1 and 6"));
             }
             if caps.dpi_max > 32000 || caps.dpi_min == 0 {
-                bail!("DPI fuori dai limiti del protocollo");
+                bail!(t!("DPI fuori dai limiti del protocollo", "DPI outside the protocol limits"));
             }
             match cfg.led {
-                true if caps.zones != [LED_ZONE] => bail!("con led = true l'unica zona è \"{LED_ZONE}\""),
-                false if !caps.zones.is_empty() => bail!("zone senza led = true"),
+                true if caps.zones != [LED_ZONE] => bail!(tf!("con led = true l'unica zona è \"{LED_ZONE}\"", "with led = true the only zone is \"{LED_ZONE}\"")),
+                false if !caps.zones.is_empty() => bail!(t!("zone senza led = true", "zones without led = true")),
                 _ => {}
             }
             if let Some(e) = caps.effects.iter().find(|e| !["static", "breathing", "off"].contains(&e.as_str())) {
-                bail!("effetto '{e}' non disponibile sul LED Pulsar");
+                bail!(tf!("effetto '{e}' non disponibile sul LED Pulsar", "effect '{e}' not available on the Pulsar LED"));
             }
         }
         Family::LamzuAurora => {
             if spec.vid != 0x373E && spec.vid != 0x37B0 {
-                bail!("la famiglia lamzu_aurora usa solo i VID 0x373E e 0x37B0");
+                bail!(t!("la famiglia lamzu_aurora usa solo i VID 0x373E e 0x37B0", "the lamzu_aurora family only uses VIDs 0x373E and 0x37B0"));
             }
             for &hz in &caps.polling {
-                a_poll_code(hz).with_context(|| format!("polling {hz} Hz non codificabile"))?;
+                a_poll_code(hz).with_context(|| tf!("polling {hz} Hz non codificabile", "polling {hz} Hz cannot be encoded"))?;
             }
             if cfg.led || cfg.read_profile || !caps.zones.is_empty() || !caps.effects.is_empty() {
-                bail!("Lamzu Aurora: luci e opzioni Pulsar non sono gestite");
+                bail!(t!("Lamzu Aurora: luci e opzioni Pulsar non sono gestite", "Lamzu Aurora: lighting and Pulsar options are not supported"));
             }
         }
     }
@@ -293,7 +293,8 @@ impl PulsarS {
             match d.read(0x01, 0x09, 0x02, 0, &[]) {
                 Ok(_) => {}
                 Err(e) => {
-                    asleep |= e.to_string().contains("addormentato");
+                    let msg = e.to_string();
+                    asleep |= msg.contains("addormentato") || msg.contains("asleep");
                     continue;
                 }
             }
@@ -306,15 +307,15 @@ impl PulsarS {
             return Ok(d);
         }
         if asleep {
-            bail!("{}: il mouse è addormentato. Muovilo per svegliarlo e riprova.", spec.name);
+            bail!(tf!("{}: il mouse è addormentato. Muovilo per svegliarlo e riprova.", "{}: the mouse is asleep. Move it to wake it and try again.", spec.name));
         }
-        bail!("{} trovato ma non risponde. Chiudi Pulsar Fusion e riprova.", spec.name)
+        bail!(tf!("{} trovato ma non risponde. Chiudi Pulsar Fusion e riprova.", "{} found but not responding. Close Pulsar Fusion and try again.", spec.name))
     }
 
     /// Invia un comando e aspetta la risposta che gli corrisponde.
     fn transact(&mut self, req: &[u8; 64]) -> Result<[u8; 64]> {
         if !s_allowed(req) {
-            bail!("comando {:02x} {:02x} {:02x} non consentito", req[1], req[2], req[3]);
+            bail!(tf!("comando {:02x} {:02x} {:02x} non consentito", "command {:02x} {:02x} {:02x} not allowed", req[1], req[2], req[3]));
         }
         let read = req[2] & 0x80 != 0;
         let mut out = [0u8; 65];
@@ -329,7 +330,7 @@ impl PulsarS {
             let mut buf = [0u8; 65];
             let n = self.dev.get_feature_report(&mut buf)?;
             if n < 64 {
-                bail!("risposta troppo corta ({n} byte)");
+                bail!(tf!("risposta troppo corta ({n} byte)", "response too short ({n} bytes)"));
             }
             let mut rsp = [0u8; 64];
             rsp.copy_from_slice(&buf[1..]);
@@ -348,11 +349,11 @@ impl PulsarS {
                 }
                 0x03 | 0x04 if s_echoes(&rsp, req) => {
                     debug("<", &rsp);
-                    bail!("il mouse ha rifiutato il comando {:02x} {:02x}", req[1], req[2]);
+                    bail!(tf!("il mouse ha rifiutato il comando {:02x} {:02x}", "the mouse rejected command {:02x} {:02x}", req[1], req[2]));
                 }
                 0x05 => {
                     debug("<", &rsp);
-                    bail!("il mouse è addormentato o fuori portata: muovilo e riprova");
+                    bail!(t!("il mouse è addormentato o fuori portata: muovilo e riprova", "the mouse is asleep or out of range: move it and try again"));
                 }
                 0x00 => {
                     zeros += 1;
@@ -377,7 +378,7 @@ impl PulsarS {
             sleep(Duration::from_millis(self.cfg.write_gap_ms));
             return Ok([0u8; 64]);
         }
-        bail!("il mouse non risponde (stato 0x{last:02x})")
+        bail!(tf!("il mouse non risponde (stato 0x{last:02x})", "the mouse is not responding (status 0x{last:02x})"))
     }
 
     fn read(&mut self, cat: u8, reg: u8, sub: u8, profile: u8, payload: &[u8]) -> Result<[u8; 64]> {
@@ -390,7 +391,7 @@ impl PulsarS {
 
     fn read_dpi(&mut self) -> Result<(u8, Vec<(u16, u16)>)> {
         let r = self.read(0x05, 0x04, 0x15, self.profile, &[])?;
-        s_dpi_decode(&r).context("tabella DPI non valida")
+        s_dpi_decode(&r).context(t!("tabella DPI non valida", "invalid DPI table"))
     }
 
     fn read_color(&mut self, stage: u8) -> Result<Rgb> {
@@ -404,7 +405,7 @@ impl PulsarS {
 
     fn check_led_zone(&self, zone: &str) -> Result<()> {
         if !self.cfg.led || zone != LED_ZONE {
-            bail!("questo mouse non ha luci configurabili");
+            bail!(t!("questo mouse non ha luci configurabili", "this mouse has no configurable lighting"));
         }
         Ok(())
     }
@@ -460,17 +461,17 @@ impl MouseDriver for PulsarS {
         let (got, table) = self.read_dpi()?;
         let want: Vec<(u16, u16)> = stages.iter().map(|&d| (d, d)).collect();
         if got as usize != active + 1 || table != want {
-            bail!("verifica fallita: il mouse non ha salvato gli stadi DPI come inviati");
+            bail!(t!("verifica fallita: il mouse non ha salvato gli stadi DPI come inviati", "verification failed: the mouse did not save the DPI stages as sent"));
         }
         Ok(())
     }
 
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
-        let code = s_poll_code(hz).context("polling non gestito")?;
+        let code = s_poll_code(hz).context(t!("polling non gestito", "polling rate not supported"))?;
         self.write(0x01, 0x09, 0x02, 0, &[code])?;
         if self.read(0x01, 0x09, 0x02, 0, &[])?[7] != code {
-            bail!("verifica fallita: il polling non è cambiato");
+            bail!(t!("verifica fallita: il polling non è cambiato", "verification failed: the polling rate did not change"));
         }
         Ok(())
     }
@@ -482,14 +483,14 @@ impl MouseDriver for PulsarS {
             Effect::Off => 0,
             Effect::Static { .. } => 1,
             Effect::Breathing { .. } => 2,
-            e => bail!("effetto '{}' non gestito", e.name()),
+            e => bail!(tf!("effetto '{}' non gestito", "effect '{}' not supported", e.name())),
         };
         // Il colore è per stadio DPI: per un colore unico lo scrivo su tutti gli stadi.
         if let Some(c) = effect.color() {
             for stage in 1..=self.spec.caps.max_stages {
                 self.write(0x05, 0x05, 0x05, self.profile, &[stage, c.0, c.1, c.2])?;
                 if self.read_color(stage)? != c {
-                    bail!("verifica fallita: colore dello stadio {stage} non salvato");
+                    bail!(tf!("verifica fallita: colore dello stadio {stage} non salvato", "verification failed: stage {stage} color not saved"));
                 }
             }
         }
@@ -499,7 +500,7 @@ impl MouseDriver for PulsarS {
         self.write(0x03, 0x04, 0x0F, self.profile, &[0x01, code, cur[9], cur[10], cur[11]])?;
         let got = self.read_led_block()?;
         if got[8] != code || got[11] != cur[11] {
-            bail!("verifica fallita: effetto non salvato");
+            bail!(t!("verifica fallita: effetto non salvato", "verification failed: effect not saved"));
         }
         Ok(())
     }
@@ -508,7 +509,7 @@ impl MouseDriver for PulsarS {
         self.check_led_zone(zone)?;
         self.write(0x03, 0x03, 0x03, self.profile, &[0x01, value])?;
         if self.read(0x03, 0x03, 0x03, self.profile, &[0x01])?[8] != value {
-            bail!("verifica fallita: luminosità non salvata");
+            bail!(t!("verifica fallita: luminosità non salvata", "verification failed: brightness not saved"));
         }
         Ok(())
     }
@@ -583,15 +584,15 @@ impl Aurora {
             }
         }
         match last_err {
-            Some(e) => Err(e.context(format!("{} non risponde. Chiudi il programma Lamzu e riprova.", spec.name))),
-            None => bail!("{}: interfaccia di controllo non trovata", spec.name),
+            Some(e) => Err(e.context(tf!("{} non risponde. Chiudi il programma Lamzu e riprova.", "{} is not responding. Close the Lamzu software and try again.", spec.name))),
+            None => bail!(tf!("{}: interfaccia di controllo non trovata", "{}: control interface not found", spec.name)),
         }
     }
 
     fn transact(&self, req: &[u8; 65], wait: Duration) -> Result<[u8; 65]> {
         let key = a_key(req);
         if !A_READS.contains(&key) && !A_WRITES.contains(&key) {
-            bail!("comando {:02x} {:02x} non consentito", req[5], req[6]);
+            bail!(tf!("comando {:02x} {:02x} non consentito", "command {:02x} {:02x} not allowed", req[5], req[6]));
         }
         debug(">", &req[1..]);
         self.dev.send_feature_report(req)?;
@@ -600,10 +601,10 @@ impl Aurora {
         let n = self.dev.get_feature_report(&mut buf)?;
         debug("<", &buf[1..]);
         if n < 9 {
-            bail!("risposta troppo corta ({n} byte)");
+            bail!(tf!("risposta troppo corta ({n} byte)", "response too short ({n} bytes)"));
         }
         if buf[1] == 0xA4 {
-            bail!("il ricevitore non vede il mouse: accendilo o muovilo e riprova");
+            bail!(t!("il ricevitore non vede il mouse: accendilo o muovilo e riprova", "the receiver can't see the mouse: turn it on or move it and try again"));
         }
         Ok(buf)
     }
@@ -612,7 +613,7 @@ impl Aurora {
     /// Una risposta vecchia o non pronta si scarta e si rimanda la stessa richiesta.
     fn read(&self, req: [u8; 65]) -> Result<[u8; 65]> {
         if !A_READS.contains(&a_key(&req)) {
-            bail!("lettura {:02x} {:02x} non consentita", req[5], req[6]);
+            bail!(tf!("lettura {:02x} {:02x} non consentita", "read {:02x} {:02x} not allowed", req[5], req[6]));
         }
         for attempt in 0..5u64 {
             let r = self.transact(&req, Duration::from_millis(10 + 15 * attempt))?;
@@ -621,13 +622,13 @@ impl Aurora {
                 return Ok(r);
             }
         }
-        bail!("il mouse non risponde (risposte non valide)")
+        bail!(t!("il mouse non risponde (risposte non valide)", "the mouse is not responding (invalid responses)"))
     }
 
     /// Scrittura singola (mai ripetuta): la verifica la fa la rilettura successiva.
     fn write(&self, req: [u8; 65]) -> Result<()> {
         if !A_WRITES.contains(&a_key(&req)) {
-            bail!("scrittura {:02x} {:02x} non consentita", req[5], req[6]);
+            bail!(tf!("scrittura {:02x} {:02x} non consentita", "write {:02x} {:02x} not allowed", req[5], req[6]));
         }
         self.transact(&req, A_WRITE_WAIT).map(|_| ())
     }
@@ -641,7 +642,7 @@ impl Aurora {
             }
             sleep(Duration::from_millis(100));
         }
-        bail!("il mouse è addormentato o spento: muovilo e riprova")
+        bail!(t!("il mouse è addormentato o spento: muovilo e riprova", "the mouse is asleep or off: move it and try again"))
     }
 
     fn read_polling(&self, p: u8) -> Result<u8> {
@@ -654,7 +655,7 @@ impl Aurora {
 
     fn read_stages(&self, p: u8) -> Result<Vec<u16>> {
         let r = self.read(a_cmd(0x0A, 0x01, 0x81, &[p, MAX_STAGES as u8]))?;
-        a_dpi_decode(&r).context("tabella DPI non valida")
+        a_dpi_decode(&r).context(t!("tabella DPI non valida", "invalid DPI table"))
     }
 }
 
@@ -685,35 +686,35 @@ impl MouseDriver for Aurora {
         let p = self.profile()?;
         // I valori DPI si scrivono con un comando mai provato: qui si cambia solo lo stadio attivo.
         if self.read_stages(p)? != stages {
-            bail!("su questo mouse i valori DPI non si possono ancora cambiare da qui (comando non verificato): puoi scegliere solo lo stadio attivo");
+            bail!(t!("su questo mouse i valori DPI non si possono ancora cambiare da qui (comando non verificato): puoi scegliere solo lo stadio attivo", "DPI values on this mouse can't be changed from here yet (command not verified): you can only choose the active stage"));
         }
         if active >= stages.len() {
-            bail!("stadio attivo {} non esiste (ci sono {} stadi)", active + 1, stages.len());
+            bail!(tf!("stadio attivo {} non esiste (ci sono {} stadi)", "active stage {} does not exist (there are {} stages)", active + 1, stages.len()));
         }
         self.write(a_cmd(0x02, 0x01, 0x02, &[p, active as u8 + 1]))?;
         if self.read_active(p)? as usize != active + 1 {
-            bail!("verifica fallita: lo stadio attivo non è cambiato");
+            bail!(t!("verifica fallita: lo stadio attivo non è cambiato", "verification failed: the active stage did not change"));
         }
         Ok(())
     }
 
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
-        let code = a_poll_code(hz).context("polling non gestito")?;
+        let code = a_poll_code(hz).context(t!("polling non gestito", "polling rate not supported"))?;
         let p = self.profile()?;
         self.write(a_cmd(0x02, 0x01, 0x00, &[p, code]))?;
         if a_poll_hz(self.read_polling(p)?) != Some(hz) {
-            bail!("verifica fallita: il polling non è cambiato");
+            bail!(t!("verifica fallita: il polling non è cambiato", "verification failed: the polling rate did not change"));
         }
         Ok(())
     }
 
     fn set_lighting(&mut self, _: &str, _: &Effect) -> Result<()> {
-        bail!("luci non gestite su questo mouse: i comandi Lamzu per le luci non sono verificati")
+        bail!(t!("luci non gestite su questo mouse: i comandi Lamzu per le luci non sono verificati", "lighting not supported on this mouse: the Lamzu lighting commands are not verified"))
     }
 
     fn set_brightness(&mut self, _: &str, _: u8) -> Result<()> {
-        bail!("luci non gestite su questo mouse: i comandi Lamzu per le luci non sono verificati")
+        bail!(t!("luci non gestite su questo mouse: i comandi Lamzu per le luci non sono verificati", "lighting not supported on this mouse: the Lamzu lighting commands are not verified"))
     }
 }
 

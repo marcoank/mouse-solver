@@ -5,6 +5,7 @@ pid = 0x826A
 driver = "glorious"
 status = "experimental"
 notes = "Il mouse non permette di rileggere le impostazioni: si vede l'ultimo stato scritto da questa app. Ogni scrittura attiva il profilo 1 e rimette lift-off, debounce, motion sync e colori degli stadi ai valori di fabbrica. Modello non provato: ID dalla tabella di OpenMouse."
+notes_en = "The mouse can't read its settings back: you see the last state written by this app. Every write activates profile 1 and resets lift-off, debounce, motion sync and stage colors to factory values. Untested model: ID from the OpenMouse table."
 
 [glorious]
 family = "g2"

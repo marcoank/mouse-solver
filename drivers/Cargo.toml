@@ -2,6 +2,7 @@
 name = "mousecfg-drivers"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 mousecfg-core.workspace = true

@@ -148,6 +148,7 @@ def generate(name, p):
         lines.append("aliases = [" + ", ".join(f"[0x{m['vendor_id']:04X}, 0x{m['product_id']:04X}]" for m in p["models"][1:]) + "]")
     lines += ['driver = "steelseries"', 'status = "experimental"',
               'notes = "Questo mouse non permette di rileggere le impostazioni: l\'app mostra le ultime scritte da qui. Usa Misura polling per controllare."',
+              'notes_en = "This mouse can\'t read its settings back: the app shows the last ones written from here. Use Measure polling to check."',
               "", "[steelseries]", f"interface = {m0['endpoint']}"]
     if p.get("save_command"):
         lines.append(f"save = {toml_value(cmd(p['save_command']))}")

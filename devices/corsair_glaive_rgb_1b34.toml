@@ -5,6 +5,7 @@ pid = 0x1B34
 driver = "corsair"
 status = "experimental"
 notes = "Modello \"a file\": ckb-next non salva sul mouse né DPI né luci. I DPI salvati potrebbero non restare dopo averlo scollegato: controlla e facci sapere."
+notes_en = "\"File-based\" model: ckb-next saves neither DPI nor lighting to the mouse. Saved DPI may not persist after unplugging it: check and let us know."
 
 [corsair]
 family = "nxp"

@@ -1,0 +1,33 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --workspace
+      - run: python -I tools/test_analyze_capture.py
+      - run: cargo build --release --workspace
+      - name: Package
+        shell: pwsh
+        run: |
+          $name = "mouse-solver-${{ github.ref_name }}-windows"
+          New-Item -ItemType Directory $name | Out-Null
+          Copy-Item target/release/MouseSolver.exe, target/release/mouse-solver.exe, target/release/mouse-solver-kit.exe, LICENSE, NOTICE $name
+          Copy-Item dist-template/* $name
+          Compress-Archive "$name/*" "$name.zip"
+          Get-FileHash "$name.zip" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $name.zip" } | Out-File -Encoding ascii "$name.zip.sha256"
+      - uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ contains(github.ref_name, 'beta') }}
+          files: |
+            mouse-solver-*-windows.zip
+            mouse-solver-*-windows.zip.sha256

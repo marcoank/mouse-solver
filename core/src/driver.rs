@@ -27,7 +27,7 @@ pub fn apply_state(drv: &mut dyn MouseDriver, current: &MouseState, target: &Mou
     if let Some(t) = &target.dpi_stages {
         if current.dpi_stages.as_ref() != Some(t) {
             drv.set_dpi_stages(&t.stages, t.active)?;
-            done.push(format!("stadi DPI {:?}, attivo {}", t.stages, t.active + 1));
+            done.push(crate::tf!("stadi DPI {:?}, attivo {}", "DPI stages {:?}, active {}", t.stages, t.active + 1));
         }
     }
     for z in &target.zones {
@@ -41,7 +41,7 @@ pub fn apply_state(drv: &mut dyn MouseDriver, current: &MouseState, target: &Mou
         if let Some(b) = z.brightness {
             if cur.and_then(|c| c.brightness) != Some(b) {
                 drv.set_brightness(&z.zone, b)?;
-                done.push(format!("{}: luminosità {}%", z.zone, pct(b)));
+                done.push(crate::tf!("{}: luminosità {}%", "{}: brightness {}%", z.zone, pct(b)));
             }
         }
     }

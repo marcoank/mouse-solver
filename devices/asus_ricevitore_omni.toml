@@ -6,6 +6,7 @@ pid = 0x1ACE
 driver = "asus"
 status = "experimental"
 notes = "Ricevitore condiviso da: ROG Gladius III Aimpoint (OMNI), ROG Harpe Ace Aim Lab Edition (OMNI), ROG Harpe Ace Extreme (OMNI), ROG Harpe Ace Mini (OMNI), ROG Keris II Ace (OMNI), ROG Keris II Origin (OMNI), ROG Keris II Origin KJP (OMNI), ROG Keris Wireless Aimpoint (OMNI), ROG Strix Impact III Wireless (OMNI). Il mouse deve essere acceso."
+notes_en = "Receiver shared by: ROG Gladius III Aimpoint (OMNI), ROG Harpe Ace Aim Lab Edition (OMNI), ROG Harpe Ace Extreme (OMNI), ROG Harpe Ace Mini (OMNI), ROG Keris II Ace (OMNI), ROG Keris II Origin (OMNI), ROG Keris II Origin KJP (OMNI), ROG Keris Wireless Aimpoint (OMNI), ROG Strix Impact III Wireless (OMNI). The mouse must be on."
 
 [asus]
 interface = 2

@@ -123,8 +123,8 @@ fn known_pid(family: Family, pid: u16) -> bool {
 }
 
 fn debug(dir: &str, b: &[u8]) {
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
-        eprintln!("{dir} {}", b.iter().take(96).map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
+    if mousecfg_core::trace::on() {
+        mousecfg_core::trace!("{dir} {}", b.iter().take(96).map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
     }
 }
 
@@ -214,21 +214,21 @@ fn stage_dpi(rec: &[u8]) -> u16 {
 /// risposta da 64 byte al posto della configurazione, e scriverla rovinerebbe il mouse.
 fn check_blob(blob: &[u8], family: Family) -> Result<()> {
     if blob.len() != BLOB_LEN {
-        bail!("blocco di {} byte invece di {BLOB_LEN}", blob.len());
+        bail!(mousecfg_core::tf!("blocco di {} byte invece di {BLOB_LEN}", "block of {} bytes instead of {BLOB_LEN}", blob.len()));
     }
     let count = blob[B_COUNT] as usize;
     if !(1..=STAGES).contains(&count) || blob[B_ACTIVE] as usize >= STAGES {
-        bail!("numero di stadi ({count}) o stadio attivo ({}) impossibile", blob[B_ACTIVE]);
+        bail!(mousecfg_core::tf!("numero di stadi ({count}) o stadio attivo ({}) impossibile", "impossible stage count ({count}) or active stage ({})", blob[B_ACTIVE]));
     }
     for i in 0..count {
         let rec = &blob[B_CPI + i * CPI_STRIDE..B_CPI + (i + 1) * CPI_STRIDE];
         let (x, y) = (stage_dpi(rec), u16::from_le_bytes([rec[3], rec[4]]));
         if rec[0] > 1 || !(10..=30000).contains(&x) || (rec[0] == 0 && x != y) {
-            bail!("stadio {} non valido ({:02x?})", i + 1, rec);
+            bail!(mousecfg_core::tf!("stadio {} non valido ({:02x?})", "invalid stage {} ({:02x?})", i + 1, rec));
         }
     }
     if polling_hz(family, blob[B_POLLING]).is_none() {
-        bail!("valore di polling sconosciuto 0x{:02x}", blob[B_POLLING]);
+        bail!(mousecfg_core::tf!("valore di polling sconosciuto 0x{:02x}", "unknown polling value 0x{:02x}", blob[B_POLLING]));
     }
     Ok(())
 }
@@ -237,7 +237,7 @@ fn check_blob(blob: &[u8], family: Family) -> Result<()> {
 fn ensure_only(old: &[u8], new: &[u8], allowed: &[(usize, usize)]) -> Result<()> {
     for i in 0..old.len().min(new.len()) {
         if old[i] != new[i] && !allowed.iter().any(|&(a, b)| (a..b).contains(&i)) {
-            bail!("errore interno: il byte 0x{i:02x} non doveva cambiare, scrittura annullata");
+            bail!(mousecfg_core::tf!("errore interno: il byte 0x{i:02x} non doveva cambiare, scrittura annullata", "internal error: byte 0x{i:02x} should not have changed, write cancelled"));
         }
     }
     Ok(())
@@ -296,7 +296,7 @@ fn decode_state(blob: &[u8], family: Family) -> MouseState {
 /// Sopra 10000 DPI il programma ufficiale dei v2 usa solo multipli di 50.
 fn check_grid(stages: &[u16], v2: bool) -> Result<()> {
     if let Some(d) = stages.iter().find(|&&d| v2 && d > 10000 && d % 50 != 0) {
-        bail!("sopra 10000 DPI servono multipli di 50 ({d} non va bene)");
+        bail!(mousecfg_core::tf!("sopra 10000 DPI servono multipli di 50 ({d} non va bene)", "above 10000 DPI only multiples of 50 are allowed ({d} is not)"));
     }
     Ok(())
 }
@@ -330,7 +330,7 @@ pub struct Endgame {
 impl Endgame {
     fn set_feature(&self, buf: &[u8]) -> Result<()> {
         if !allowed(self.family, self.wireless, buf) {
-            bail!("comando Endgame Gear {:02x} {:02x} bloccato", buf.first().unwrap_or(&0), buf.get(1).unwrap_or(&0));
+            bail!(mousecfg_core::tf!("comando Endgame Gear {:02x} {:02x} bloccato", "Endgame Gear command {:02x} {:02x} blocked", buf.first().unwrap_or(&0), buf.get(1).unwrap_or(&0)));
         }
         debug(">", buf);
         self.dev.send_feature_report(buf)?;
@@ -343,7 +343,7 @@ impl Endgame {
         let n = self.dev.get_feature_report(&mut buf)?;
         debug("<", &buf[..n.min(len)]);
         if n < 2 {
-            bail!("risposta vuota dal mouse");
+            bail!(mousecfg_core::t!("risposta vuota dal mouse", "empty response from the mouse"));
         }
         Ok(buf)
     }
@@ -351,9 +351,9 @@ impl Endgame {
     fn unreachable(&self, status: u8) -> anyhow::Error {
         match self.wireless {
             true => anyhow::anyhow!(
-                "il mouse non risponde (stato 0x{status:02x}): probabilmente dorme. Muovilo, aspetta qualche secondo e riprova. Se continua, scollega e ricollega il ricevitore."
-            ),
-            false => anyhow::anyhow!("il mouse non risponde (stato 0x{status:02x}). Chiudi il software Endgame Gear e riprova."),
+                mousecfg_core::tf!("il mouse non risponde (stato 0x{status:02x}): probabilmente dorme. Muovilo, aspetta qualche secondo e riprova. Se continua, scollega e ricollega il ricevitore.", "the mouse is not responding (status 0x{status:02x}): it is probably asleep. Move it, wait a few seconds and try again. If it keeps happening, unplug and replug the receiver."
+            )),
+            false => anyhow::anyhow!(mousecfg_core::tf!("il mouse non risponde (stato 0x{status:02x}). Chiudi il software Endgame Gear e riprova.", "the mouse is not responding (status 0x{status:02x}). Close the Endgame Gear software and try again.")),
         }
     }
 
@@ -371,9 +371,9 @@ impl Endgame {
                     busy += 1;
                     sleep(Duration::from_millis(200 * busy));
                 }
-                ST_WRONG_LINK => bail!("comando non valido con questo collegamento (stato 0x07)"),
+                ST_WRONG_LINK => bail!(mousecfg_core::t!("comando non valido con questo collegamento (stato 0x07)", "command not valid with this connection (status 0x07)")),
                 s @ (ST_BUSY | ST_PENDING | ST_UNREACHABLE) => return Err(self.unreachable(s)),
-                s => bail!("il mouse ha risposto con lo stato 0x{s:02x}"),
+                s => bail!(mousecfg_core::tf!("il mouse ha risposto con lo stato 0x{s:02x}", "the mouse replied with status 0x{s:02x}")),
             }
         }
     }
@@ -381,7 +381,7 @@ impl Endgame {
     /// Un comando sul report 0xA1 e la sua risposta (solo 4k).
     fn exchange(&self, cmd: u8, target: u8, payload: &[u8], declared: u8, settle_ms: u64) -> Result<Vec<u8>> {
         if payload.len() > CMD_LEN - PAYLOAD {
-            bail!("dati troppo lunghi per il report 0xA1");
+            bail!(mousecfg_core::t!("dati troppo lunghi per il report 0xA1", "data too long for report 0xA1"));
         }
         let mut buf = [0u8; CMD_LEN];
         buf[0] = REPORT_CMD;
@@ -412,7 +412,7 @@ impl Endgame {
         if self.wireless {
             if self.exchange(CMD_PROBE, TARGET_DONGLE, &[], 0, settle).is_err() {
                 self.exchange(CMD_PROBE, TARGET_MOUSE, &[], 0, settle)
-                    .context("il ricevitore non risponde: scollegalo, ricollegalo e riprova")?;
+                    .context(mousecfg_core::t!("il ricevitore non risponde: scollegalo, ricollegalo e riprova", "the receiver is not responding: unplug it, plug it back in and try again"))?;
             }
         } else if self.needs_probe {
             self.exchange(CMD_MOUSE_INFO, TARGET_NONE, &[], 0, settle)?;
@@ -447,10 +447,10 @@ impl Endgame {
                     sleep(Duration::from_millis(200));
                 }
                 Err(s) if matches!(s, ST_BUSY | ST_PENDING | ST_UNREACHABLE) => return Err(self.unreachable(s)),
-                Err(s) => bail!("lettura della configurazione fallita (stato 0x{s:02x})"),
+                Err(s) => bail!(mousecfg_core::tf!("lettura della configurazione fallita (stato 0x{s:02x})", "reading the configuration failed (status 0x{s:02x})")),
             }
         };
-        check_blob(&blob, self.family).context("configurazione letta non credibile: non scrivo niente")?;
+        check_blob(&blob, self.family).context(mousecfg_core::t!("configurazione letta non credibile: non scrivo niente", "the configuration read back is not plausible: nothing will be written"))?;
         self.needs_probe = false;
         Ok(blob)
     }
@@ -467,21 +467,21 @@ impl Endgame {
         self.firmware = Some(format!("{:x}.{:02x}", r[22], r[23]));
         let pid = if self.wireless {
             if rvid != VID {
-                bail!("il ricevitore riporta un mouse sconosciuto ({rvid:04x}:{rpid:04x})");
+                bail!(mousecfg_core::tf!("il ricevitore riporta un mouse sconosciuto ({rvid:04x}:{rpid:04x})", "the receiver reports an unknown mouse ({rvid:04x}:{rpid:04x})"));
             }
             rpid
         } else {
             if rvid == VID && model(rpid).is_some() && rpid != self.spec.pid {
-                bail!("il mouse dice di essere {rpid:04x} ma è collegato come {:04x}", self.spec.pid);
+                bail!(mousecfg_core::tf!("il mouse dice di essere {rpid:04x} ma è collegato come {:04x}", "the mouse reports {rpid:04x} but is connected as {:04x}", self.spec.pid));
             }
             self.spec.pid
         };
         let m = model(pid)
             .filter(|m| m.family == Family::FourK)
-            .with_context(|| format!("modello {pid:04x} sul ricevitore non supportato"))?;
+            .with_context(|| mousecfg_core::tf!("modello {pid:04x} sul ricevitore non supportato", "model {pid:04x} on the receiver is not supported"))?;
         self.v2 = m.v2;
         if self.wireless {
-            self.spec.name = format!("{} (ricevitore)", m.name);
+            self.spec.name = mousecfg_core::tf!("{} (ricevitore)", "{} (receiver)", m.name);
         }
         caps_4k(&mut self.spec.caps, m.v2);
         Ok(())
@@ -518,13 +518,13 @@ impl Endgame {
             }
         }
         if !acked {
-            bail!("il mouse non ha confermato la scrittura");
+            bail!(mousecfg_core::t!("il mouse non ha confermato la scrittura", "the mouse did not confirm the write"));
         }
         let back = self.read_blob()?;
         let diff: Vec<String> =
             (0..BLOB_LEN).filter(|&i| !(0x01..0x05).contains(&i) && back[i] != new[i]).map(|i| format!("0x{i:03x}")).collect();
         if !diff.is_empty() {
-            bail!("verifica fallita: il mouse ha salvato valori diversi (byte {})", diff.join(", "));
+            bail!(mousecfg_core::tf!("verifica fallita: il mouse ha salvato valori diversi (byte {})", "verification failed: the mouse saved different values (bytes {})", diff.join(", ")));
         }
         Ok(())
     }
@@ -533,7 +533,7 @@ impl Endgame {
     fn verify_4k(&mut self, new: &[u8], fields: &[usize]) -> Result<()> {
         let back = self.read_blob()?;
         if let Some(&i) = fields.iter().find(|&&i| back[i] != new[i]) {
-            bail!("verifica fallita: il mouse ha salvato un valore diverso (byte 0x{i:02x}: {:02x} invece di {:02x})", back[i], new[i]);
+            bail!(mousecfg_core::tf!("verifica fallita: il mouse ha salvato un valore diverso (byte 0x{i:02x}: {:02x} invece di {:02x})", "verification failed: the mouse saved a different value (byte 0x{i:02x}: {:02x} instead of {:02x})", back[i], new[i]));
         }
         Ok(())
     }
@@ -587,7 +587,7 @@ impl MouseDriver for Endgame {
 
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
-        let code = polling_code(self.family, self.v2, hz).context("polling non gestito")?;
+        let code = polling_code(self.family, self.v2, hz).context(mousecfg_core::t!("polling non gestito", "polling rate not supported"))?;
         let old = self.read_blob()?;
         // Già impostato (anche come "1000 Hz risparmio energetico"): non si riscrive.
         if polling_hz(self.family, old[B_POLLING]) == Some(hz) {
@@ -606,11 +606,11 @@ impl MouseDriver for Endgame {
     }
 
     fn set_lighting(&mut self, _: &str, _: &Effect) -> Result<()> {
-        bail!("questo mouse non ha luci configurabili: il LED sotto il mouse ha colori fissi")
+        bail!(mousecfg_core::t!("questo mouse non ha luci configurabili: il LED sotto il mouse ha colori fissi", "this mouse has no configurable lighting: the LED under the mouse has fixed colors"))
     }
 
     fn set_brightness(&mut self, _: &str, _: u8) -> Result<()> {
-        bail!("questo mouse non ha luci configurabili")
+        bail!(mousecfg_core::t!("questo mouse non ha luci configurabili", "this mouse has no configurable lighting"))
     }
 }
 
@@ -618,10 +618,10 @@ impl MouseDriver for Endgame {
 pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<dyn MouseDriver>> {
     let cfg: EndgameConfig = spec.section("endgame")?;
     if BOOTLOADER_PIDS.contains(&pid) {
-        bail!("{} è in modalità aggiornamento firmware: scollegalo e ricollegalo", spec.name);
+        bail!(mousecfg_core::tf!("{} è in modalità aggiornamento firmware: scollegalo e ricollegalo", "{} is in firmware update mode: unplug it and plug it back in", spec.name));
     }
     if vid != VID || !known_pid(cfg.family, pid) {
-        bail!("{vid:04x}:{pid:04x} non è un modello Endgame Gear supportato da questo driver");
+        bail!(mousecfg_core::tf!("{vid:04x}:{pid:04x} non è un modello Endgame Gear supportato da questo driver", "{vid:04x}:{pid:04x} is not an Endgame Gear model supported by this driver"));
     }
     let mut last_err = None;
     for info in api
@@ -652,8 +652,8 @@ pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<d
         }
     }
     match last_err {
-        Some(e) => Err(e.context(format!("{} trovato ma non risponde. Chiudi il software Endgame Gear e riprova.", spec.name))),
-        None => bail!("{}: collezione di configurazione (0xFF01) non trovata", spec.name),
+        Some(e) => Err(e.context(mousecfg_core::tf!("{} trovato ma non risponde. Chiudi il software Endgame Gear e riprova.", "{} found but not responding. Close the Endgame Gear software and try again.", spec.name))),
+        None => bail!(mousecfg_core::tf!("{}: collezione di configurazione (0xFF01) non trovata", "{}: configuration collection (0xFF01) not found", spec.name)),
     }
 }
 
@@ -661,15 +661,15 @@ pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<d
 pub fn check_config(spec: &DeviceSpec) -> Result<()> {
     let cfg: EndgameConfig = spec.section("endgame")?;
     if spec.vid != VID {
-        bail!("VID 0x{:04x} non gestito (solo 0x{VID:04x})", spec.vid);
+        bail!(mousecfg_core::tf!("VID 0x{:04x} non gestito (solo 0x{VID:04x})", "VID 0x{:04x} not supported (only 0x{VID:04x})", spec.vid));
     }
     for [v, p] in std::iter::once([spec.vid, spec.pid]).chain(spec.aliases.iter().copied()) {
         if v != VID || !known_pid(cfg.family, p) {
-            bail!("{v:04x}:{p:04x} non è un modello della famiglia {:?}", cfg.family);
+            bail!(mousecfg_core::tf!("{v:04x}:{p:04x} non è un modello della famiglia {:?}", "{v:04x}:{p:04x} is not a model of the {:?} family", cfg.family));
         }
     }
     if !spec.caps.zones.is_empty() || !spec.caps.effects.is_empty() {
-        bail!("nessun modello Endgame Gear ha luci configurabili: zones ed effects devono essere vuoti");
+        bail!(mousecfg_core::t!("nessun modello Endgame Gear ha luci configurabili: zones ed effects devono essere vuoti", "no Endgame Gear model has configurable lighting: zones and effects must be empty"));
     }
     if cfg.family == Family::FourK {
         // Le capacità dei 4k le decide il driver: il TOML deve coincidere (ricevitore = v1, prudente).
@@ -680,7 +680,7 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
         if (c.dpi_min, c.dpi_max, c.dpi_step, c.max_stages, c.active_stage_settable, &c.polling)
             != (want.dpi_min, want.dpi_max, want.dpi_step, want.max_stages, want.active_stage_settable, &want.polling)
         {
-            bail!("[caps] diverse da quelle del modello ({}-{} passo {}, polling {:?})", want.dpi_min, want.dpi_max, want.dpi_step, want.polling);
+            bail!(mousecfg_core::tf!("[caps] diverse da quelle del modello ({}-{} passo {}, polling {:?})", "[caps] differ from the model's ({}-{} step {}, polling {:?})", want.dpi_min, want.dpi_max, want.dpi_step, want.polling));
         }
     }
     Ok(())

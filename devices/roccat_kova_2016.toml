@@ -6,6 +6,7 @@ aliases = [[0x1E7D, 0x2CEF], [0x1E7D, 0x2CF0]]
 driver = "roccat_new"
 status = "experimental"
 notes = "Si modifica il profilo attivo. Le luci (tubo e rotella) hanno lo stesso effetto e colore. Nessuna luminosità: usa un colore più scuro."
+notes_en = "The active profile is changed. The lights (tube and wheel) share the same effect and color. No brightness: use a darker color."
 
 [roccat_new]
 family = "kova_2016"

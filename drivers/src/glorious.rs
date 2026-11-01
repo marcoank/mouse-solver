@@ -88,27 +88,27 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
     let c = &spec.caps;
     let subset = |vals: &[u16], ok: &[u16], what: &str| -> Result<()> {
         match vals.iter().find(|v| !ok.contains(v)) {
-            Some(v) => bail!("{what} {v} non gestito da questa famiglia"),
+            Some(v) => bail!(tf!("{what} {v} non gestito da questa famiglia", "{what} {v} not supported by this family")),
             None => Ok(()),
         }
     };
-    ensure!(c.zones.iter().all(|z| z == ZONE), "l'unica zona possibile è '{ZONE}'");
-    ensure!(c.effects.iter().all(|e| EFFECTS.contains(&e.as_str())), "effetti possibili: {EFFECTS:?}");
-    ensure!(c.zones.is_empty() == c.effects.is_empty(), "zone ed effetti vanno insieme");
-    ensure!(c.dpi_values.is_empty(), "dpi_values non serve");
-    ensure!(cfg.cable_pid.is_none() || cfg.link == Link::Dongle, "cable_pid solo per le voci ricevitore");
+    ensure!(c.zones.iter().all(|z| z == ZONE), tf!("l'unica zona possibile è '{ZONE}'", "the only possible zone is '{ZONE}'"));
+    ensure!(c.effects.iter().all(|e| EFFECTS.contains(&e.as_str())), tf!("effetti possibili: {EFFECTS:?}", "possible effects: {EFFECTS:?}"));
+    ensure!(c.zones.is_empty() == c.effects.is_empty(), t!("zone ed effetti vanno insieme", "zones and effects go together"));
+    ensure!(c.dpi_values.is_empty(), t!("dpi_values non serve", "dpi_values is not needed"));
+    ensure!(cfg.cable_pid.is_none() || cfg.link == Link::Dongle, t!("cable_pid solo per le voci ricevitore", "cable_pid only for receiver entries"));
     match cfg.family {
         Family::G2 => {
-            ensure!(cfg.map.is_none(), "map vale solo per la famiglia gp");
+            ensure!(cfg.map.is_none(), t!("map vale solo per la famiglia gp", "map only applies to the gp family"));
             // Le fonti confermano solo 4-6 stadi.
-            ensure!(c.min_stages >= 4 && c.max_stages <= 6, "G2: stadi da 4 a 6");
-            ensure!(c.dpi_min >= 100 && c.dpi_max <= 26000 && c.dpi_step % 50 == 0, "G2: DPI 100-26000 a passi di 50");
+            ensure!(c.min_stages >= 4 && c.max_stages <= 6, t!("G2: stadi da 4 a 6", "G2: 4 to 6 stages"));
+            ensure!(c.dpi_min >= 100 && c.dpi_max <= 26000 && c.dpi_step % 50 == 0, t!("G2: DPI 100-26000 a passi di 50", "G2: DPI 100-26000 in steps of 50"));
             subset(&c.polling, &G2_RATES.map(|r| r.1), "polling")?;
         }
         Family::G3 => {
-            ensure!(cfg.map.is_none(), "map vale solo per la famiglia gp");
-            ensure!(cfg.cable_pid.is_none(), "G3: cable_pid non serve (le impostazioni si rileggono)");
-            ensure!(c.min_stages >= 1 && c.max_stages as usize <= G3_SLOTS, "G3: al massimo 6 stadi");
+            ensure!(cfg.map.is_none(), t!("map vale solo per la famiglia gp", "map only applies to the gp family"));
+            ensure!(cfg.cable_pid.is_none(), t!("G3: cable_pid non serve (le impostazioni si rileggono)", "G3: cable_pid is not needed (settings can be read back)"));
+            ensure!(c.min_stages >= 1 && c.max_stages as usize <= G3_SLOTS, t!("G3: al massimo 6 stadi", "G3: at most 6 stages"));
             ensure!(c.dpi_min >= 50 && c.dpi_max <= 26000, "G3: DPI 50-26000");
             let rates: &[u16] = match cfg.link {
                 Link::Cable => &G3_RATES,
@@ -117,18 +117,18 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
             subset(&c.polling, rates, "polling")?;
         }
         Family::Gp => {
-            let map = cfg.map.context("GP: manca map = \"classic\" o \"core2\"")?;
-            ensure!(c.dpi_min >= 100, "GP: DPI minimo 100");
+            let map = cfg.map.context(t!("GP: manca map = \"classic\" o \"core2\"", "GP: missing map = \"classic\" or \"core2\""))?;
+            ensure!(c.dpi_min >= 100, t!("GP: DPI minimo 100", "GP: minimum DPI 100"));
             match map {
                 Map::Classic => {
                     // mxw scrive sempre esattamente 4 stadi (lunghezza fissa 0x12).
-                    ensure!(c.min_stages == 4 && c.max_stages == 4, "GP classic: esattamente 4 stadi");
-                    ensure!(c.dpi_max <= 19000, "GP classic: DPI massimo 19000");
+                    ensure!(c.min_stages == 4 && c.max_stages == 4, t!("GP classic: esattamente 4 stadi", "GP classic: exactly 4 stages"));
+                    ensure!(c.dpi_max <= 19000, t!("GP classic: DPI massimo 19000", "GP classic: maximum DPI 19000"));
                     subset(&c.polling, &GP_CLASSIC_RATES.map(|r| r.1), "polling")?;
                 }
                 Map::Core2 => {
-                    ensure!(c.zones.is_empty(), "GP core2: luci non verificate, nessuna zona");
-                    ensure!(c.max_stages <= 6 && c.dpi_max <= 26000, "GP core2: al massimo 6 stadi, DPI 26000");
+                    ensure!(c.zones.is_empty(), t!("GP core2: luci non verificate, nessuna zona", "GP core2: lighting not verified, no zones"));
+                    ensure!(c.max_stages <= 6 && c.dpi_max <= 26000, t!("GP core2: al massimo 6 stadi, DPI 26000", "GP core2: at most 6 stages, DPI 26000"));
                     subset(&c.polling, &GP_CORE2_RATES.map(|r| r.0), "polling")?;
                 }
             }
@@ -138,8 +138,8 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
 }
 
 fn debug(dir: &str, b: &[u8]) {
-    if std::env::var_os("MOUSECFG_DEBUG").is_some() {
-        eprintln!("{dir} {}", b.iter().map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
+    if mousecfg_core::trace::on() {
+        mousecfg_core::trace!("{dir} {}", b.iter().map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
     }
 }
 
@@ -170,7 +170,7 @@ fn zone_mut<'a>(s: &'a mut MouseState, zone: &str) -> &'a mut ZoneState {
 
 fn check_zone(caps: &Capabilities, zone: &str) -> Result<()> {
     if !caps.zones.iter().any(|z| z == zone) {
-        bail!("zona '{zone}' non esiste su questo mouse");
+        bail!(tf!("zona '{zone}' non esiste su questo mouse", "zone '{zone}' does not exist on this mouse"));
     }
     Ok(())
 }
@@ -241,14 +241,14 @@ fn g2_profile_packet(profile: u8, cable: bool) -> G2Packet {
 
 /// Pacchetti del blocco prestazioni (cmd 0x04): stadio attivo, numero stadi, polling e DPI.
 fn g2_perf_packets(profile: u8, stages: &[u16], active: usize, hz: u16, cable: bool) -> Result<Vec<G2Packet>> {
-    ensure!((4..=6).contains(&stages.len()) && active < stages.len(), "G2: servono da 4 a 6 stadi");
-    let code = G2_RATES.iter().find(|r| r.1 == hz).with_context(|| format!("polling {hz} Hz non gestito"))?.0;
+    ensure!((4..=6).contains(&stages.len()) && active < stages.len(), t!("G2: servono da 4 a 6 stadi", "G2: 4 to 6 stages required"));
+    let code = G2_RATES.iter().find(|r| r.1 == hz).with_context(|| tf!("polling {hz} Hz non gestito", "polling {hz} Hz not supported"))?.0;
     let mut d = [0u8; 64];
     (d[0], d[1], d[2], d[3], d[4], d[5]) = (active as u8, stages.len() as u8, G2_LOD, G2_DEBOUNCE, code, G2_MOTION_SYNC);
     // Ricevitore: 5 byte per stadio da 6; cavo: 8 byte per stadio da 12 (3 byte a zero in più).
     let (offset, stride) = if cable { (12, 8) } else { (6, 5) };
     for (i, &dpi) in stages.iter().enumerate() {
-        ensure!((100..=26000).contains(&dpi), "DPI {dpi} fuori dai limiti");
+        ensure!((100..=26000).contains(&dpi), tf!("DPI {dpi} fuori dai limiti", "DPI {dpi} out of range"));
         let at = offset + stride * i;
         d[at..at + 2].copy_from_slice(&g2_encode_dpi(dpi));
         d[at + 2..at + 5].copy_from_slice(&G2_STAGE_COLORS[i]);
@@ -280,7 +280,7 @@ fn g2_effect(effect: &Effect) -> Result<(u8, Vec<Rgb>)> {
         Effect::Spectrum => (0x01, vec![]),
         Effect::Static { color } => (0x04, vec![*color]),
         Effect::Breathing { color } => (0x05, vec![*color]),
-        e => bail!("effetto '{}' non supportato", e.name()),
+        e => bail!(tf!("effetto '{}' non supportato", "effect '{}' not supported", e.name())),
     })
 }
 
@@ -327,7 +327,7 @@ impl G2 {
         let (vid, pid) = (spec.vid, spec.pid);
         if let Some(cable_pid) = cfg.cable_pid {
             if api.device_list().any(|d| d.vendor_id() == vid && d.product_id() == cable_pid) {
-                bail!("{}: il mouse è collegato anche col cavo e così ignora i comandi dal ricevitore. Usa la voce \"cavo\".", spec.name);
+                bail!(tf!("{}: il mouse è collegato anche col cavo e così ignora i comandi dal ricevitore. Usa la voce \"cavo\".", "{}: the mouse is also connected by cable, so it ignores commands from the receiver. Use the \"cavo\" (wired) entry.", spec.name));
             }
         }
         // Interfaccia 1, collezione del produttore (0xFF00) che dichiara il feature report 0x03 da 63 byte.
@@ -340,7 +340,7 @@ impl G2 {
             .iter()
             .filter_map(|d| d.open_device(api).ok())
             .find(|dev| crate::hid::feature_len(dev, G2_REPORT) == Some(G2_LEN - 1))
-            .with_context(|| format!("{}: interfaccia di configurazione non trovata. Chiudi Glorious CORE e riprova.", spec.name))?;
+            .with_context(|| tf!("{}: interfaccia di configurazione non trovata. Chiudi Glorious CORE e riprova.", "{}: configuration interface not found. Close Glorious CORE and try again.", spec.name))?;
         Ok(G2 {
             dev,
             cable: cfg.link == Link::Cable,
@@ -364,10 +364,10 @@ impl G2 {
 
     fn send(&mut self, p: &G2Packet, after_ms: u64) -> Result<()> {
         if p[0] != G2_REPORT || !G2_ALLOWED.contains(&p[1]) || p[2] != g2_route(self.cable) {
-            bail!("comando Glorious G2 {:02x} {:02x} bloccato", p[1], p[2]);
+            bail!(tf!("comando Glorious G2 {:02x} {:02x} bloccato", "Glorious G2 command {:02x} {:02x} blocked", p[1], p[2]));
         }
         debug(">", p);
-        self.dev.send_feature_report(p).context("scrittura sul mouse non riuscita")?;
+        self.dev.send_feature_report(p).context(t!("scrittura sul mouse non riuscita", "writing to the mouse failed"))?;
         self.last_write = Some(Instant::now());
         ms(after_ms);
         Ok(())
@@ -439,7 +439,7 @@ impl MouseDriver for G2 {
         let d = s
             .dpi_stages
             .clone()
-            .context("questo mouse non permette di rileggere le impostazioni: imposta prima gli stadi DPI (il polling si scrive insieme a loro)")?;
+            .context(t!("questo mouse non permette di rileggere le impostazioni: imposta prima gli stadi DPI (il polling si scrive insieme a loro)", "this mouse can't read back its settings: set the DPI stages first (polling is written together with them)"))?;
         let packets = g2_perf_packets(G2_PROFILE, &d.stages, d.active, hz, self.cable)?;
         self.write_block(&packets)?;
         s.polling_hz = Some(hz);
@@ -464,7 +464,7 @@ impl MouseDriver for G2 {
         let mut s = self.state();
         let effect = match zone_mut(&mut s, zone).effect.clone() {
             Some(e) if !matches!(e, Effect::Unknown { .. }) => e,
-            _ => bail!("questo mouse non permette di rileggere le luci: scegli prima un effetto (la luminosità si scrive insieme)"),
+            _ => bail!(t!("questo mouse non permette di rileggere le luci: scegli prima un effetto (la luminosità si scrive insieme)", "this mouse can't read back its lighting: choose an effect first (brightness is written together with it)")),
         };
         let packets = g2_light_packets(G2_PROFILE, &effect, g2_level(value), self.cable)?;
         self.write_block(&packets)?;
@@ -514,9 +514,9 @@ const G3_FX_SOLID: u8 = 5;
 
 fn g3_frame(cmd: u8, payload: &[u8]) -> Result<[u8; G3_LEN]> {
     if !G3_WRITES.contains(&cmd) && !G3_READS.contains(&cmd) {
-        bail!("comando Glorious G3 0x{cmd:02x} bloccato");
+        bail!(tf!("comando Glorious G3 0x{cmd:02x} bloccato", "Glorious G3 command 0x{cmd:02x} blocked"));
     }
-    ensure!(payload.len() <= G3_LEN - 4, "dati troppo lunghi");
+    ensure!(payload.len() <= G3_LEN - 4, t!("dati troppo lunghi", "data too long"));
     let mut buf = [0u8; G3_LEN];
     buf[..4].copy_from_slice(&[G3_REPORT, G3_MOUSE, cmd, payload.len() as u8]);
     buf[4..4 + payload.len()].copy_from_slice(payload);
@@ -585,7 +585,7 @@ fn g3_light_payload(cur: &[u8], effect: &Effect) -> Result<[u8; 10]> {
         Effect::Spectrum => (G3_FX_RAINBOW, None),
         Effect::Static { color } => (G3_FX_SOLID, Some(*color)),
         Effect::Breathing { color } => (G3_FX_BREATHING_SINGLE, Some(*color)),
-        e => bail!("effetto '{}' non supportato", e.name()),
+        e => bail!(tf!("effetto '{}' non supportato", "effect '{}' not supported", e.name())),
     };
     p[0] = code;
     p[6] = color.is_some() as u8;
@@ -601,19 +601,24 @@ pub struct G3 {
     wireless: bool,
 }
 
-const G3_ASLEEP: &str = "nessuna risposta dal mouse: probabilmente è in standby, muovilo e riprova";
+fn g3_asleep() -> &'static str {
+    t!(
+        "nessuna risposta dal mouse: probabilmente è in standby, muovilo e riprova",
+        "no response from the mouse: it's probably in standby, move it and try again"
+    )
+}
 
 fn g3_query(dev: &HidDevice, cmd: u8, payload: &[u8], wait_ms: u64) -> Result<Vec<u8>> {
-    ensure!(cmd & G3_GET != 0, "0x{cmd:02x} non è una lettura");
+    ensure!(cmd & G3_GET != 0, tf!("0x{cmd:02x} non è una lettura", "0x{cmd:02x} is not a read"));
     let req = g3_frame(cmd, payload)?;
     debug(">", &req);
     dev.send_feature_report(&req)?;
     ms(wait_ms);
     let mut buf = [0u8; G3_LEN];
     buf[0] = G3_REPORT;
-    let n = dev.get_feature_report(&mut buf).context(G3_ASLEEP)?;
+    let n = dev.get_feature_report(&mut buf).context(g3_asleep())?;
     debug("<", &buf[..n]);
-    g3_reply(&buf[..n], cmd).context(G3_ASLEEP)
+    g3_reply(&buf[..n], cmd).context(g3_asleep())
 }
 
 impl G3 {
@@ -629,7 +634,7 @@ impl G3 {
                     && g3_query(dev, G3_DPI_ACTIVE | G3_GET, &[], 100).is_ok()
             },
         )
-        .with_context(|| format!("{} trovato ma non risponde: muovi il mouse per svegliarlo e chiudi Glorious CORE.", spec.name))?;
+        .with_context(|| tf!("{} trovato ma non risponde: muovi il mouse per svegliarlo e chiudi Glorious CORE.", "{} found but not responding: move the mouse to wake it and close Glorious CORE.", spec.name))?;
         Ok(G3 { dev, spec, wireless: cfg.link == Link::Dongle })
     }
 
@@ -638,10 +643,10 @@ impl G3 {
     }
 
     fn send(&self, cmd: u8, payload: &[u8], after_ms: u64) -> Result<()> {
-        ensure!(G3_WRITES.contains(&cmd), "comando Glorious G3 0x{cmd:02x} bloccato");
+        ensure!(G3_WRITES.contains(&cmd), tf!("comando Glorious G3 0x{cmd:02x} bloccato", "Glorious G3 command 0x{cmd:02x} blocked"));
         let buf = g3_frame(cmd, payload)?;
         debug(">", &buf);
-        self.dev.send_feature_report(&buf).context("scrittura sul mouse non riuscita")?;
+        self.dev.send_feature_report(&buf).context(t!("scrittura sul mouse non riuscita", "writing to the mouse failed"))?;
         ms(after_ms);
         Ok(())
     }
@@ -718,7 +723,7 @@ impl MouseDriver for G3 {
 
     fn set_dpi_stages(&mut self, stages: &[u16], active: usize) -> Result<()> {
         self.spec.caps.check_dpi_stages(stages, active)?;
-        ensure!(stages.len() <= G3_SLOTS, "al massimo {G3_SLOTS} stadi");
+        ensure!(stages.len() <= G3_SLOTS, tf!("al massimo {G3_SLOTS} stadi", "at most {G3_SLOTS} stages"));
         // Conservo i colori degli stadi esistenti.
         let old = self.slots()?;
         // Come CORE: prima lo stadio attivo, poi tutti e 6 gli slot (quelli in più spenti), 30 ms tra uno e l'altro.
@@ -734,7 +739,7 @@ impl MouseDriver for G3 {
         let got = g3_stages(&slots, self.active_slot()?);
         let want = DpiStages { stages: stages.to_vec(), active };
         if got.as_ref() != Some(&want) {
-            bail!("verifica fallita: il mouse riporta {got:?} invece di {want:?}");
+            bail!(tf!("verifica fallita: il mouse riporta {got:?} invece di {want:?}", "verification failed: the mouse reports {got:?} instead of {want:?}"));
         }
         Ok(())
     }
@@ -745,7 +750,7 @@ impl MouseDriver for G3 {
         let v = self.query(self.poll_cmd() | G3_GET, &[])?;
         let got = u16::from_be_bytes([v[0], v[1]]);
         if got != hz {
-            bail!("verifica fallita: il mouse riporta {got} Hz invece di {hz}");
+            bail!(tf!("verifica fallita: il mouse riporta {got} Hz invece di {hz}", "verification failed: the mouse reports {got} Hz instead of {hz}"));
         }
         Ok(())
     }
@@ -758,7 +763,7 @@ impl MouseDriver for G3 {
         let got = self.lighting()?;
         let same = got[0] == p[0] && got[1..3] == p[1..3] && got[6] == p[6] && (p[6] == 0 || got[7..10] == p[7..10]);
         if !same {
-            bail!("verifica fallita: luci rilette diverse da quelle scritte");
+            bail!(t!("verifica fallita: luci rilette diverse da quelle scritte", "verification failed: lighting read back differs from what was written"));
         }
         Ok(())
     }
@@ -776,7 +781,7 @@ impl MouseDriver for G3 {
         self.send(G3_LIGHTING, &p, 30)?;
         let got = self.lighting()?;
         if got[1..3] != p[1..3] {
-            bail!("verifica fallita: luminosità riletta {}% invece di {}%", got[1], p[1]);
+            bail!(tf!("verifica fallita: luminosità riletta {}% invece di {}%", "verification failed: brightness read back {}% instead of {}%", got[1], p[1]));
         }
         Ok(())
     }
@@ -843,7 +848,7 @@ fn gp_effect_data(profile: u8, effect: &Effect) -> Result<Vec<u8>> {
         Effect::Spectrum => (0x01, GP_RATE, None),
         Effect::Static { color } => (0x04, 0, Some(*color)),
         Effect::Breathing { color } => (0x05, GP_RATE, Some(*color)),
-        e => bail!("effetto '{}' non supportato", e.name()),
+        e => bail!(tf!("effetto '{}' non supportato", "effect '{}' not supported", e.name())),
     };
     let mut d = vec![profile, 0xFF, id, 0x00, rate];
     if let Some(c) = color {
@@ -863,7 +868,7 @@ pub struct Gp {
 impl Gp {
     fn open(api: &HidApi, spec: DeviceSpec, cfg: GloriousConfig) -> Result<Gp> {
         let (vid, pid) = (spec.vid, spec.pid);
-        let map = cfg.map.context("manca map nella sezione [glorious]")?;
+        let map = cfg.map.context(t!("manca map nella sezione [glorious]", "missing map in the [glorious] section"))?;
         // Interfaccia 2, collezione del produttore con un feature report da 64 byte. Su Windows c'è
         // un'altra collezione 0xFFFF con report di lunghezza 0: va scartata.
         let dev = api
@@ -871,7 +876,7 @@ impl Gp {
             .filter(|d| d.vendor_id() == vid && d.product_id() == pid && d.interface_number() == 2 && d.usage_page() >= 0xFF00)
             .filter_map(|d| d.open_device(api).ok())
             .find(|dev| crate::hid::feature_len(dev, 0) == Some(GP_LEN - 1))
-            .with_context(|| format!("{}: interfaccia di configurazione non trovata. Chiudi Glorious CORE e riprova.", spec.name))?;
+            .with_context(|| tf!("{}: interfaccia di configurazione non trovata. Chiudi Glorious CORE e riprova.", "{}: configuration interface not found. Close Glorious CORE and try again.", spec.name))?;
         Ok(Gp { dev, map, cache_pid: cfg.cable_pid.unwrap_or(pid), spec, profile_ready: false })
     }
 
@@ -881,11 +886,11 @@ impl Gp {
             Map::Core2 => &GP_CORE2_WRITES,
         };
         if !allowed.contains(&reg) {
-            bail!("registro Glorious {:02x}:{:02x} bloccato", reg.0, reg.1);
+            bail!(tf!("registro Glorious {:02x}:{:02x} bloccato", "Glorious register {:02x}:{:02x} blocked", reg.0, reg.1));
         }
         let b = gp_frame(reg, data.len() as u8, data);
         debug(">", &b);
-        self.dev.send_feature_report(&b).context("scrittura sul mouse non riuscita")?;
+        self.dev.send_feature_report(&b).context(t!("scrittura sul mouse non riuscita", "writing to the mouse failed"))?;
         ms(after_ms);
         Ok(())
     }
@@ -904,8 +909,8 @@ impl Gp {
             return Ok(());
         }
         match b[1] {
-            GP_STATUS_FAILED => bail!("il mouse ha rifiutato il comando"),
-            GP_STATUS_ASLEEP => bail!("il ricevitore non trova il mouse: muovilo per svegliarlo e riprova"),
+            GP_STATUS_FAILED => bail!(t!("il mouse ha rifiutato il comando", "the mouse rejected the command")),
+            GP_STATUS_ASLEEP => bail!(t!("il ricevitore non trova il mouse: muovilo per svegliarlo e riprova", "the receiver can't find the mouse: move it to wake it and try again")),
             _ => Ok(()),
         }
     }
@@ -965,9 +970,9 @@ impl MouseDriver for Gp {
 
     fn set_dpi_stages(&mut self, stages: &[u16], active: usize) -> Result<()> {
         self.spec.caps.check_dpi_stages(stages, active)?;
-        ensure!(stages.len() <= 6, "al massimo 6 stadi");
+        ensure!(stages.len() <= 6, t!("al massimo 6 stadi", "at most 6 stages"));
         if self.map == Map::Classic {
-            ensure!(stages.len() == 4, "questo mouse ha esattamente 4 stadi DPI");
+            ensure!(stages.len() == 4, t!("questo mouse ha esattamente 4 stadi DPI", "this mouse has exactly 4 DPI stages"));
         }
         self.profile()?;
         // Ordine di CORE: stadi, poi stadio attivo (1-based) e 120 ms di pausa.
@@ -984,14 +989,14 @@ impl MouseDriver for Gp {
         let reg = match self.map {
             Map::Classic => {
                 // Registro globale, senza profilo.
-                let ms = GP_CLASSIC_RATES.iter().find(|r| r.1 == hz).context("polling non gestito")?.0;
+                let ms = GP_CLASSIC_RATES.iter().find(|r| r.1 == hz).context(t!("polling non gestito", "polling rate not supported"))?.0;
                 self.send(GP_REG_POLL_CLASSIC, &[ms], 30)?;
                 GP_REG_POLL_CLASSIC
             }
             Map::Core2 => {
                 self.profile()?;
-                let cable = gp_core2_code(hz).context("polling non gestito")?;
-                let wireless = gp_core2_code(hz.min(GP_CORE2_WIRELESS_MAX)).context("polling non gestito")?;
+                let cable = gp_core2_code(hz).context(t!("polling non gestito", "polling rate not supported"))?;
+                let wireless = gp_core2_code(hz.min(GP_CORE2_WIRELESS_MAX)).context(t!("polling non gestito", "polling rate not supported"))?;
                 self.send(GP_REG_POLL_CORE2, &[GP_PROFILE, cable, wireless], 30)?;
                 GP_REG_POLL_CORE2
             }
@@ -1004,7 +1009,7 @@ impl MouseDriver for Gp {
     fn set_lighting(&mut self, zone: &str, effect: &Effect) -> Result<()> {
         self.spec.caps.check_effect(zone, effect)?;
         // Mappa core2: CORE userebbe il formato classic, ma nessuna cattura lo conferma.
-        ensure!(self.map == Map::Classic, "luci non ancora supportate su questo modello");
+        ensure!(self.map == Map::Classic, t!("luci non ancora supportate su questo modello", "lighting not yet supported on this model"));
         self.profile()?;
         self.send(GP_REG_LED_EFFECT, &gp_effect_data(GP_PROFILE, effect)?, 30)?;
         self.ack(GP_REG_LED_EFFECT)?;
@@ -1015,7 +1020,7 @@ impl MouseDriver for Gp {
 
     fn set_brightness(&mut self, zone: &str, value: u8) -> Result<()> {
         check_zone(&self.spec.caps, zone)?;
-        ensure!(self.map == Map::Classic, "luci non ancora supportate su questo modello");
+        ensure!(self.map == Map::Classic, t!("luci non ancora supportate su questo modello", "lighting not yet supported on this model"));
         // Registro globale, senza profilo: [collegamento, valore], prima cavo (01) poi wireless (00).
         self.send(GP_REG_LED_BRIGHTNESS, &[0x01, value], 30)?;
         self.send(GP_REG_LED_BRIGHTNESS, &[0x00, value], 30)?;

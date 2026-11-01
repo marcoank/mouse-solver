@@ -87,7 +87,7 @@ fn allowed(cmd: &[u8]) -> bool {
 
 fn transact(dev: &HidDevice, cfg: &AsusConfig, cmd: &[u8]) -> Result<Vec<u8>> {
     if !allowed(cmd) {
-        bail!("comando {:02x?} bloccato: non è nella lista dei comandi sicuri", cmd);
+        bail!(tf!("comando {:02x?} bloccato: non è nella lista dei comandi sicuri", "command {:02x?} blocked: not in the list of safe commands", cmd));
     }
     let mut pkt = vec![0u8; cfg.packet_size];
     pkt[0] = cfg.report_id;
@@ -103,23 +103,23 @@ fn transact(dev: &HidDevice, cfg: &AsusConfig, cmd: &[u8]) -> Result<Vec<u8>> {
         let mut buf = vec![0u8; cfg.packet_size + 1];
         let n = dev.read_timeout(&mut buf, 300)?;
         if n == 0 {
-            bail!("nessuna risposta (il mouse è spento o in standby?)");
+            bail!(t!("nessuna risposta (il mouse è spento o in standby?)", "no response (is the mouse off or in standby?)"));
         }
         // hidapi su Windows toglie il report ID 0: lo rimetto per avere gli stessi indici di G-Helper.
         resp = if cfg.report_id == 0 { [&[0u8][..], &buf[..n]].concat() } else { buf[..n].to_vec() };
         resp.resize(cfg.packet_size.max(32), 0);
         if resp[1] == 0xFF && resp[2] == 0xAA {
-            bail!("il mouse non supporta il comando {:02x?}", cmd);
+            bail!(tf!("il mouse non supporta il comando {:02x?}", "the mouse does not support command {:02x?}", cmd));
         }
         if resp[1..4].iter().all(|&b| b == 0) {
-            bail!("risposta vuota (il mouse è spento o in standby?)");
+            bail!(t!("risposta vuota (il mouse è spento o in standby?)", "empty response (is the mouse off or in standby?)"));
         }
         let need = cmd.len().min(3);
         if resp[1..1 + need] == cmd[..need] {
             return Ok(resp);
         }
     }
-    bail!("risposta non corrispondente al comando {:02x?}: {:02x?}", cmd, &resp[..8])
+    bail!(tf!("risposta non corrispondente al comando {:02x?}: {:02x?}", "response does not match command {:02x?}: {:02x?}", cmd, &resp[..8]))
 }
 
 pub struct Asus {
@@ -149,7 +149,13 @@ impl Asus {
             },
             |dev| transact(dev, &c, &[0x12, 0x00]).is_ok(),
         )
-        .with_context(|| format!("{} trovato ma non risponde. Prova a chiudere Armoury Crate; se è wireless, muovilo per svegliarlo.", spec.name))?;
+        .with_context(|| {
+            tf!(
+                "{} trovato ma non risponde. Prova a chiudere Armoury Crate; se è wireless, muovilo per svegliarlo.",
+                "{} found but not responding. Try closing Armoury Crate; if it's wireless, move it to wake it up.",
+                spec.name
+            )
+        })?;
         let mut spec = spec.clone();
         (spec.vid, spec.pid) = (vid, pid);
         Ok(Asus { dev, spec, cfg })
@@ -201,11 +207,11 @@ impl Asus {
 
     fn read_polling(&self) -> Result<u16> {
         let r = self.tx(&[0x12, 0x04, 0x00])?;
-        POLLING.get((r[13] & 0x07) as usize).copied().context("codice polling sconosciuto")
+        POLLING.get((r[13] & 0x07) as usize).copied().context(t!("codice polling sconosciuto", "unknown polling code"))
     }
 
     fn zone_index(&self, zone: &str) -> Result<u8> {
-        self.spec.caps.zones.iter().position(|z| z == zone).map(|i| i as u8).with_context(|| format!("zona '{zone}' sconosciuta"))
+        self.spec.caps.zones.iter().position(|z| z == zone).map(|i| i as u8).with_context(|| tf!("zona '{zone}' sconosciuta", "unknown zone '{zone}'"))
     }
 
     fn read_light(&self, zone: &str) -> Result<Light> {
@@ -214,7 +220,7 @@ impl Asus {
     }
 
     fn write_light(&self, zone: &str, l: Light) -> Result<()> {
-        let code = *self.cfg.zones.get(zone).with_context(|| format!("zona '{zone}' senza codice nel TOML"))?;
+        let code = *self.cfg.zones.get(zone).with_context(|| tf!("zona '{zone}' senza codice nel TOML", "zone '{zone}' has no code in the TOML"))?;
         let Rgb(r, g, b) = l.color;
         let speed = if l.mode == 0x03 { 0x07 } else { 0x00 }; // velocità media solo per l'arcobaleno
         self.tx(&[0x51, 0x28, code, 0x00, l.mode, l.brightness.min(self.cfg.brightness_max), r, g, b, 0x00, 0x00, speed])?;
@@ -285,17 +291,17 @@ impl MouseDriver for Asus {
         let caps = self.spec.caps.clone();
         caps.check_dpi_stages(stages, active)?;
         if !self.cfg.dpi {
-            bail!("DPI non configurabili su questo modello");
+            bail!(t!("DPI non configurabili su questo modello", "DPI not configurable on this model"));
         }
         let inc = self.cfg.dpi_increment;
         if stages.iter().any(|d| d % inc != 0) {
-            bail!("i DPI devono essere multipli di {inc}");
+            bail!(tf!("i DPI devono essere multipli di {inc}", "DPI must be a multiple of {inc}"));
         }
         let colors = self.read_dpi_colors();
         let (_, count) = self.read_profile()?;
         if count != stages.len() {
             if !self.cfg.dpi_count_settable {
-                bail!("su questo modello il numero di stadi è fisso ({count})");
+                bail!(tf!("su questo modello il numero di stadi è fisso ({count})", "on this model the number of stages is fixed ({count})"));
             }
             self.tx(&[0x51, 0x31, 0x0A, 0x00, stages.len() as u8])?;
         }
@@ -316,7 +322,7 @@ impl MouseDriver for Asus {
         let (back_active, back_count) = self.read_profile()?;
         let back = self.read_dpis(back_count)?;
         if back != stages || (self.cfg.dpi_active_settable && back_active != active) {
-            bail!("verifica fallita: il mouse riporta stadi {back:?} attivo {}", back_active + 1);
+            bail!(tf!("verifica fallita: il mouse riporta stadi {back:?} attivo {}", "check failed: the mouse reports stages {back:?} active {}", back_active + 1));
         }
         Ok(())
     }
@@ -324,14 +330,14 @@ impl MouseDriver for Asus {
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
         if !self.cfg.polling {
-            bail!("polling non configurabile su questo modello");
+            bail!(t!("polling non configurabile su questo modello", "polling not configurable on this model"));
         }
-        let code = POLLING.iter().position(|&p| p == hz).context("polling non gestito")? as u8;
+        let code = POLLING.iter().position(|&p| p == hz).context(t!("polling non gestito", "polling rate not supported"))? as u8;
         self.tx(&[0x51, 0x31, 0x04, 0x00, code])?;
         self.save()?;
         let back = self.read_polling()?;
         if back != hz {
-            bail!("verifica fallita: il mouse riporta {back} Hz");
+            bail!(tf!("verifica fallita: il mouse riporta {back} Hz", "check failed: the mouse reports {back} Hz"));
         }
         Ok(())
     }
@@ -346,7 +352,7 @@ impl MouseDriver for Asus {
             Effect::Wave { .. } => 0x03,
             Effect::Reactive { .. } => 0x04,
             Effect::Off => 0xF0,
-            Effect::Unknown { code } => bail!("effetto sconosciuto 0x{code:02x}: non lo scrivo"),
+            Effect::Unknown { code } => bail!(tf!("effetto sconosciuto 0x{code:02x}: non lo scrivo", "unknown effect 0x{code:02x}: not writing it")),
         };
         if let Some(c) = effect.color() {
             l.color = c;
@@ -354,7 +360,7 @@ impl MouseDriver for Asus {
         self.write_light(zone, l)?;
         let back = effect_of(self.read_light(zone)?);
         if back.name() != effect.name() || back.color() != effect.color() {
-            bail!("verifica fallita su {zone}: il mouse riporta {back}");
+            bail!(tf!("verifica fallita su {zone}: il mouse riporta {back}", "check failed on {zone}: the mouse reports {back}"));
         }
         Ok(())
     }
@@ -366,7 +372,7 @@ impl MouseDriver for Asus {
         self.write_light(zone, l)?;
         let back = self.read_light(zone)?.brightness;
         if back != l.brightness {
-            bail!("verifica fallita su {zone}: luminosità {back} invece di {}", l.brightness);
+            bail!(tf!("verifica fallita su {zone}: luminosità {back} invece di {}", "check failed on {zone}: brightness {back} instead of {}", l.brightness));
         }
         Ok(())
     }

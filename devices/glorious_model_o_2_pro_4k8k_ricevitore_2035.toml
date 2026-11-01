@@ -5,6 +5,7 @@ pid = 0x2035
 driver = "glorious"
 status = "experimental"
 notes = "Il mouse non permette di rileggere le impostazioni: si vede l'ultimo stato scritto da questa app. Ogni scrittura attiva il profilo 1. Luci non supportate: il loro formato su questo modello non è mai stato catturato. Via radio il massimo è 4000 Hz."
+notes_en = "The mouse can't read its settings back: you see the last state written by this app. Every write activates profile 1. Lighting not supported: its format on this model has never been captured. Over wireless the maximum is 4000 Hz."
 
 [glorious]
 family = "gp"

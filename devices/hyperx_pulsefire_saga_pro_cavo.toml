@@ -5,6 +5,7 @@ pid = 0x04BF
 driver = "hyperx"
 status = "experimental"
 notes = "Il mouse non permette di rileggere le impostazioni: si vedono gli ultimi valori scritti da qui. Sempre 4 stadi DPI. DPI e polling stanno nella stessa tabella: cambiando i DPI si riscrive l'ultimo polling impostato da qui (1000 Hz se mai impostato). Solo i polling visti nelle catture."
+notes_en = "The mouse can't read its settings back: you see the last values written from here. Always 4 DPI stages. DPI and polling share the same table: changing DPI rewrites the last polling set from here (1000 Hz if never set). Only the polling rates seen in captures."
 
 [hyperx]
 family = "saga"

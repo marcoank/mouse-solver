@@ -43,11 +43,11 @@ impl CoolerMasterConfig {
         Ok(match self.family.as_str() {
             "mm" => match self.command {
                 Some(c @ (0x2B | 0x2C)) => Family::Mm(c),
-                _ => bail!("famiglia mm: serve command = 0x2B o 0x2C"),
+                _ => bail!(mousecfg_core::t!("famiglia mm: serve command = 0x2B o 0x2C", "mm family: command = 0x2B or 0x2C is required")),
             },
             "mm711" => Family::Mm711,
             "mm712" => Family::Mm712,
-            f => bail!("famiglia Cooler Master '{f}' sconosciuta (mm, mm711, mm712)"),
+            f => bail!(mousecfg_core::tf!("famiglia Cooler Master '{f}' sconosciuta (mm, mm711, mm712)", "unknown Cooler Master family '{f}' (mm, mm711, mm712)")),
         })
     }
 }
@@ -87,7 +87,7 @@ fn encode(f: Family, effect: &Effect, bri: u8) -> Result<(u8, Rgb, u8)> {
         Effect::Breathing { color } => (MM_BREATHING, *color, bri),
         Effect::Spectrum => (MM_SPECTRUM, Rgb(0, 0, 0), ((bri as u16 * SPECTRUM_MAX as u16 + 127) / 255) as u8),
         Effect::Off => (off_code(f), Rgb(0, 0, 0), 0),
-        e => bail!("effetto '{}' non supportato", e.name()),
+        e => bail!(mousecfg_core::tf!("effetto '{}' non supportato", "effect '{}' not supported", e.name())),
     })
 }
 
@@ -206,7 +206,7 @@ fn allowed(f: Family, p: &[u8]) -> bool {
 }
 
 fn debug() -> bool {
-    std::env::var_os("MOUSECFG_DEBUG").is_some()
+    mousecfg_core::trace::on()
 }
 
 /// Stato grezzo letto: modo, colore, luminosità.
@@ -241,7 +241,7 @@ pub fn open(api: &HidApi, spec: &DeviceSpec, vid: u16, pid: u16) -> Result<Box<d
             return Ok(Box::new(drv));
         }
     }
-    bail!("{} trovato ma non risponde. Chiudi MasterPlus+ e riprova.", spec.name)
+    bail!(mousecfg_core::tf!("{} trovato ma non risponde. Chiudi MasterPlus+ e riprova.", "{} found but not responding. Close MasterPlus+ and try again.", spec.name))
 }
 
 /// Controlla che la sezione del driver nel file TOML sia valida (usato dai test del database).
@@ -250,13 +250,13 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
     cfg.family()?;
     let c = &spec.caps;
     if c.max_stages != 0 || !c.polling.is_empty() {
-        bail!("su Cooler Master DPI e polling non sono documentati: max_stages = 0, polling = []");
+        bail!(mousecfg_core::t!("su Cooler Master DPI e polling non sono documentati: max_stages = 0, polling = []", "on Cooler Master, DPI and polling are not documented: max_stages = 0, polling = []"));
     }
     if c.zones != [ZONE] {
-        bail!("l'unica zona è \"{ZONE}\"");
+        bail!(mousecfg_core::tf!("l'unica zona è \"{ZONE}\"", "the only zone is \"{ZONE}\""));
     }
     if let Some(e) = c.effects.iter().find(|e| !["static", "breathing", "spectrum", "off"].contains(&e.as_str())) {
-        bail!("effetto '{e}' non gestito");
+        bail!(mousecfg_core::tf!("effetto '{e}' non gestito", "effect '{e}' not supported"));
     }
     Ok(())
 }
@@ -264,12 +264,12 @@ pub fn check_config(spec: &DeviceSpec) -> Result<()> {
 impl CoolerMaster {
     fn write(&self, p: &[u8]) -> Result<()> {
         if !allowed(self.family, p) {
-            bail!("comando {:02x?} non consentito: non viene inviato", &p[1..p.len().min(9)]);
+            bail!(mousecfg_core::tf!("comando {:02x?} non consentito: non viene inviato", "command {:02x?} not allowed: it will not be sent", &p[1..p.len().min(9)]));
         }
         if debug() {
-            eprintln!("> {:02x?}", &p[1..17]);
+            mousecfg_core::trace!("> {:02x?}", &p[1..17]);
         }
-        self.dev.write(p).context("scrittura sul mouse non riuscita")?;
+        self.dev.write(p).context(mousecfg_core::t!("scrittura sul mouse non riuscita", "writing to the mouse failed"))?;
         Ok(())
     }
 
@@ -285,7 +285,7 @@ impl CoolerMaster {
         let mut buf = [0u8; 65];
         let n = self.dev.read_timeout(&mut buf, TIMEOUT_MS)?;
         if debug() && n > 0 {
-            eprintln!("< {:02x?}", &buf[..n.min(16)]);
+            mousecfg_core::trace!("< {:02x?}", &buf[..n.min(16)]);
         }
         Ok(())
     }
@@ -303,13 +303,13 @@ impl CoolerMaster {
             // le risposte arrivano senza lo 0 del report ID; se c'è, lo tolgo
             let r = if n == 65 && buf[0] == 0 { &buf[1..n] } else { &buf[..n] };
             if debug() {
-                eprintln!("< {:02x?}", &r[..r.len().min(16)]);
+                mousecfg_core::trace!("< {:02x?}", &r[..r.len().min(16)]);
             }
             if matches(r) {
                 return Ok(r.to_vec());
             }
         }
-        bail!("il mouse non risponde alla lettura")
+        bail!(mousecfg_core::t!("il mouse non risponde alla lettura", "the mouse does not respond to the read"))
     }
 
     fn read_raw(&self) -> Result<Raw> {
@@ -346,7 +346,7 @@ impl CoolerMaster {
         let seq = write_sequence(f, mode, color, raw_bri);
         // prima controllo tutta la sequenza: o parte intera o niente
         if let Some(p) = seq.iter().find(|p| !allowed(f, p)) {
-            bail!("comando {:02x?} non consentito: non viene inviato", &p[1..9]);
+            bail!(mousecfg_core::tf!("comando {:02x?} non consentito: non viene inviato", "command {:02x?} not allowed: it will not be sent", &p[1..9]));
         }
         for p in &seq {
             self.command(p)?;
@@ -359,7 +359,7 @@ impl CoolerMaster {
                 _ => got.bri == raw_bri && got.color == color,
             };
         if !ok {
-            bail!("verifica fallita: il mouse non ha salvato le luci come inviate");
+            bail!(mousecfg_core::t!("verifica fallita: il mouse non ha salvato le luci come inviate", "verification failed: the mouse did not save the lighting as sent"));
         }
         Ok(())
     }
@@ -390,11 +390,11 @@ impl MouseDriver for CoolerMaster {
     }
 
     fn set_dpi_stages(&mut self, _stages: &[u16], _active: usize) -> Result<()> {
-        bail!("su questo mouse i DPI non sono documentati: si possono cambiare solo le luci")
+        bail!(mousecfg_core::t!("su questo mouse i DPI non sono documentati: si possono cambiare solo le luci", "DPI is not documented on this mouse: only the lighting can be changed"))
     }
 
     fn set_polling(&mut self, _hz: u16) -> Result<()> {
-        bail!("su questo mouse il polling non è documentato: si possono cambiare solo le luci")
+        bail!(mousecfg_core::t!("su questo mouse il polling non è documentato: si possono cambiare solo le luci", "polling is not documented on this mouse: only the lighting can be changed"))
     }
 
     fn set_lighting(&mut self, zone: &str, effect: &Effect) -> Result<()> {
@@ -406,12 +406,12 @@ impl MouseDriver for CoolerMaster {
 
     fn set_brightness(&mut self, zone: &str, value: u8) -> Result<()> {
         if zone != ZONE {
-            bail!("zona '{zone}' non esiste");
+            bail!(mousecfg_core::tf!("zona '{zone}' non esiste", "zone '{zone}' does not exist"));
         }
         match self.state()?.0 {
             // a luci spente non c'è luminosità da cambiare
             Effect::Off => Ok(()),
-            Effect::Unknown { code } => bail!("effetto attuale sconosciuto (0x{code:02x}): scegli prima un effetto"),
+            Effect::Unknown { code } => bail!(mousecfg_core::tf!("effetto attuale sconosciuto (0x{code:02x}): scegli prima un effetto", "current effect unknown (0x{code:02x}): choose an effect first")),
             e => self.write_effect(&e, value),
         }
     }

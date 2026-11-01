@@ -6,6 +6,7 @@ pid = 0x1978
 driver = "endgame"
 status = "experimental"
 notes = "Sopra 10000 DPI solo multipli di 50. Il LED sotto il mouse ha colori fissi: niente luci. XM2 8k, OP1 8k e XM2 8k v2 non sono inclusi: protocollo uguale solo per deduzione."
+notes_en = "Above 10000 DPI only multiples of 50. The LED under the mouse has fixed colors: no lighting. XM2 8k, OP1 8k and XM2 8k v2 are not included: same protocol only by deduction."
 
 [endgame]
 family = "8k"

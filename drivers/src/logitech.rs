@@ -109,11 +109,11 @@ impl Hidpp {
             }
             // Errore HID++ 2.0: [.., 0xFF, feat_idx, fn|sw, codice]
             if buf[2] == 0xFF && buf[3] == feat_idx && buf[4] == req[3] {
-                bail!("il mouse risponde errore 0x{:02x}", buf[5]);
+                bail!(tf!("il mouse risponde errore 0x{:02x}", "the mouse replies with error 0x{:02x}", buf[5]));
             }
             // Errore HID++ 1.0 (dispositivo vecchio o ricevitore senza mouse)
             if buf[2] == 0x8F {
-                bail!("dispositivo HID++ 1.0 o mouse spento");
+                bail!(t!("dispositivo HID++ 1.0 o mouse spento", "HID++ 1.0 device or mouse turned off"));
             }
             if buf[2] == feat_idx && buf[3] == req[3] {
                 let mut out = [0u8; LONG_LEN];
@@ -121,17 +121,17 @@ impl Hidpp {
                 return Ok(out);
             }
         }
-        bail!("nessuna risposta")
+        bail!(t!("nessuna risposta", "no response"))
     }
 
     /// Chiama la funzione `func` della feature `id`, se il mouse la ha.
     fn call(&mut self, id: u16, func: u8, params: &[u8]) -> Result<[u8; LONG_LEN]> {
         if !ALLOWED.contains(&(id, func)) {
-            bail!("comando HID++ {id:04x}/{func} bloccato: non è nella lista dei comandi sicuri");
+            bail!(tf!("comando HID++ {id:04x}/{func} bloccato: non è nella lista dei comandi sicuri", "HID++ command {id:04x}/{func} blocked: not in the list of safe commands"));
         }
         let idx = match id {
             ROOT => 0,
-            _ => self.feature(id)?.with_context(|| format!("il mouse non ha la funzione HID++ 0x{id:04x}"))?,
+            _ => self.feature(id)?.with_context(|| tf!("il mouse non ha la funzione HID++ 0x{id:04x}", "the mouse does not have HID++ feature 0x{id:04x}"))?,
         };
         self.raw(idx, func, params)
     }
@@ -161,7 +161,7 @@ impl Hidpp {
     /// Scrive un settore intero. Ammessi solo la directory (0) e i profili utente (1..=profili).
     fn write_sector(&mut self, sector: u16, data: &[u8], profile_count: u8) -> Result<()> {
         if sector > profile_count as u16 || data.len() != SECTOR {
-            bail!("scrittura nel settore 0x{sector:04x} bloccata: non è un profilo utente");
+            bail!(tf!("scrittura nel settore 0x{sector:04x} bloccata: non è un profilo utente", "write to sector 0x{sector:04x} blocked: it is not a user profile"));
         }
         let [sh, sl] = sector.to_be_bytes();
         let [ch, cl] = (SECTOR as u16).to_be_bytes();
@@ -178,11 +178,12 @@ impl Hidpp {
         let p = &d[4..];
         let sector_size = u16::from_be_bytes([p[7], p[8]]) as usize;
         if p[0] != 0x01 || !(0x01..=0x05).contains(&p[1]) || p[2] != 0x01 || sector_size != SECTOR || p[3] == 0 {
-            bail!(
+            bail!(tf!(
                 "formato dei profili onboard non gestito (memoria {:02x}, profilo {:02x}, settore {sector_size} byte)",
+                "onboard profile format not supported (memory {:02x}, profile {:02x}, sector {sector_size} bytes)",
                 p[0],
                 p[1]
-            );
+            ));
         }
         let (profile_count, rom_count, sector_count) = (p[3], p[4], p[6]);
         let dir = self.read_sector(0x0000).ok();
@@ -243,14 +244,17 @@ impl Logitech {
                             Ok(o) => l.onboard = Some(o),
                             Err(e) => l.read_only = Some(format!("{e:#}")),
                         },
-                        _ => l.read_only = Some("il mouse non ha profili onboard (0x8100)".into()),
+                        _ => l.read_only = Some(t!("il mouse non ha profili onboard (0x8100)", "the mouse has no onboard profiles (0x8100)").into()),
                     }
                     l.fill_caps();
                     return Ok(l);
                 }
             }
         }
-        bail!("mouse Logitech non raggiungibile via HID++ 2.0 (se è wireless, muovilo per svegliarlo; chiudi G HUB)")
+        bail!(t!(
+            "mouse Logitech non raggiungibile via HID++ 2.0 (se è wireless, muovilo per svegliarlo; chiudi G HUB)",
+            "Logitech mouse not reachable via HID++ 2.0 (if it's wireless, move it to wake it up; close G HUB)"
+        ))
     }
 
     /// Le capacità vengono dal mouse stesso, non dal file TOML.
@@ -299,7 +303,7 @@ impl Logitech {
             }
             i += 2;
         }
-        let (min, max) = (*list.iter().min().context("lista DPI vuota")?, *list.iter().max().unwrap());
+        let (min, max) = (*list.iter().min().context(t!("lista DPI vuota", "empty DPI list"))?, *list.iter().max().unwrap());
         Ok((min, max, step, if step > 0 { Vec::new() } else { list }))
     }
 
@@ -328,7 +332,7 @@ impl Logitech {
 
 impl Logitech {
     fn profile(&mut self) -> Result<Vec<u8>> {
-        let o = self.onboard.clone().context("profili onboard non disponibili")?;
+        let o = self.onboard.clone().context(t!("profili onboard non disponibili", "onboard profiles not available"))?;
         self.hidpp.read_sector(o.source)
     }
 
@@ -336,16 +340,16 @@ impl Logitech {
         match zone {
             "led1" => Ok(208),
             "led2" => Ok(219),
-            _ => bail!("zona '{zone}' sconosciuta"),
+            _ => bail!(tf!("zona '{zone}' sconosciuta", "unknown zone '{zone}'")),
         }
     }
 
     /// Lettura-modifica-scrittura del profilo attivo, con CRC e verifica.
     fn modify(&mut self, change: impl FnOnce(&mut [u8]) -> Result<()>) -> Result<()> {
         if let Some(why) = &self.read_only {
-            bail!("su questo mouse la scrittura non è possibile: {why}");
+            bail!(tf!("su questo mouse la scrittura non è possibile: {why}", "writing is not possible on this mouse: {why}"));
         }
-        let o = self.onboard.clone().context("profili onboard non disponibili")?;
+        let o = self.onboard.clone().context(t!("profili onboard non disponibili", "onboard profiles not available"))?;
         if self.hidpp.call(ONBOARD, 2, &[])?[4] != 0x01 {
             // I profili salvati valgono solo in modalità onboard (libratbag fa lo stesso).
             self.hidpp.call(ONBOARD, 1, &[0x01])?;
@@ -356,11 +360,11 @@ impl Logitech {
         sec[SECTOR - 2..].copy_from_slice(&crc.to_be_bytes());
         let target = o.active as u16 + 1;
         if o.sector_count > 0 && target >= o.sector_count as u16 {
-            bail!("settore {target} fuori dalla memoria del mouse");
+            bail!(tf!("settore {target} fuori dalla memoria del mouse", "sector {target} is outside the mouse memory"));
         }
         self.hidpp.write_sector(target, &sec, o.profile_count)?;
         if self.hidpp.read_sector(target)? != sec {
-            bail!("verifica fallita: il profilo riletto dal mouse è diverso da quello scritto");
+            bail!(t!("verifica fallita: il profilo riletto dal mouse è diverso da quello scritto", "check failed: the profile read back from the mouse differs from the one written"));
         }
         if !o.dir_valid {
             // Primo salvataggio: la directory elenca i profili utente, attivo solo quello scritto.
@@ -470,7 +474,7 @@ impl MouseDriver for Logitech {
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
         if hz > 1000 || 1000 % hz != 0 {
-            bail!("polling {hz} Hz non salvabile nel profilo");
+            bail!(tf!("polling {hz} Hz non salvabile nel profilo", "polling {hz} Hz cannot be saved in the profile"));
         }
         self.modify(|sec| {
             sec[0] = (1000 / hz) as u8;
@@ -493,7 +497,7 @@ impl MouseDriver for Logitech {
                 led[0] = 0x03;
                 led[6..8].copy_from_slice(&10000u16.to_be_bytes());
             }
-            ref e => bail!("effetto '{}' non gestito sui Logitech", e.name()),
+            ref e => bail!(tf!("effetto '{}' non gestito sui Logitech", "effect '{}' not supported on Logitech mice", e.name())),
         }
         self.modify(|sec| {
             sec[o..o + 11].copy_from_slice(&led);
@@ -503,7 +507,7 @@ impl MouseDriver for Logitech {
     }
 
     fn set_brightness(&mut self, _: &str, _: u8) -> Result<()> {
-        bail!("luminosità non ancora gestita sui Logitech: usa un colore più scuro")
+        bail!(t!("luminosità non ancora gestita sui Logitech: usa un colore più scuro", "brightness not supported yet on Logitech mice: use a darker color"))
     }
 }
 
@@ -520,7 +524,7 @@ pub fn probe(api: &HidApi, vid: u16, pid: u16) -> serde_json::Value {
         name: String::new(), vid, pid, driver: "logitech".into(), status: SupportStatus::Experimental,
         caps: Capabilities { dpi_min: 0, dpi_max: 0, dpi_step: 1, dpi_values: vec![], min_stages: 1, max_stages: 1,
             active_stage_settable: false, polling: vec![], zones: vec![], effects: vec![] },
-        notes: None, aliases: vec![], match_names: vec![], any_pid: false, extra: Default::default(),
+        notes: None, notes_en: None, aliases: vec![], match_names: vec![], any_pid: false, extra: Default::default(),
     };
     match Logitech::open(api, &spec_like, vid, pid) {
         Err(e) => json!({ "error": e.to_string() }),

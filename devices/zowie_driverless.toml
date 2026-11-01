@@ -12,6 +12,11 @@ DPI: premi il tasto sotto il mouse (FK1-B/C: 400, 800, 1600, 3200; il LED indica
 Polling (fonte: FAQ ufficiale Zowie): scollega il mouse, poi ricollegalo tenendo premuto
   tasto 5 = 500 Hz, tasti 4+5 = 125 Hz, tasto 4 = 1000 Hz. La rotella si illumina quando è fatto.
 Usa 'Misura polling' per vedere il valore attuale."""
+notes_en = """
+DPI: press the button under the mouse (FK1-B/C: 400, 800, 1600, 3200; the LED shows the stage).
+Polling (source: official Zowie FAQ): unplug the mouse, then plug it back in while holding
+  button 5 = 500 Hz, buttons 4+5 = 125 Hz, button 4 = 1000 Hz. The wheel lights up when done.
+Use 'Measure polling' to see the current value."""
 
 [caps]
 dpi_min = 400

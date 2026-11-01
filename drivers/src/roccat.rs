@@ -80,12 +80,12 @@ fn wait_ready(dev: &HidDevice) -> Result<()> {
         dev.get_feature_report(&mut buf)?;
         match buf[1] {
             0x01 => return Ok(()),
-            0x02 => bail!("il mouse ha rifiutato il comando"),
+            0x02 => bail!(t!("il mouse ha rifiutato il comando", "the mouse rejected the command")),
             0x03 => sleep(Duration::from_millis(100)),
             _ => sleep(Duration::from_millis(10)),
         }
     }
-    bail!("il mouse non risponde (timeout)")
+    bail!(t!("il mouse non risponde (timeout)", "the mouse does not respond (timeout)"))
 }
 
 impl Roccat {
@@ -104,7 +104,7 @@ impl Roccat {
                 return Ok(r);
             }
         }
-        bail!("{} trovato ma non risponde. Chiudi Roccat Swarm e riprova.", spec.name)
+        bail!(tf!("{} trovato ma non risponde. Chiudi Roccat Swarm e riprova.", "{} found but not responding. Close Roccat Swarm and try again.", spec.name))
     }
 
     fn active_profile(&self) -> Result<u8> {
@@ -121,7 +121,7 @@ impl Roccat {
         buf[0] = SETTINGS;
         let n = self.dev.get_feature_report(&mut buf)?;
         if n < self.cfg.settings_len || buf[0] != SETTINGS {
-            bail!("report impostazioni non valido ({n} byte)");
+            bail!(tf!("report impostazioni non valido ({n} byte)", "invalid settings report ({n} bytes)"));
         }
         Ok(buf)
     }
@@ -138,7 +138,7 @@ impl Roccat {
         self.dev.send_feature_report(&buf)?;
         wait_ready(&self.dev)?;
         if self.read()? != buf {
-            bail!("verifica fallita: il mouse non ha salvato le impostazioni come inviate");
+            bail!(t!("verifica fallita: il mouse non ha salvato le impostazioni come inviate", "check failed: the mouse did not save the settings as sent"));
         }
         Ok(())
     }
@@ -217,7 +217,7 @@ impl MouseDriver for Roccat {
 
     fn set_polling(&mut self, hz: u16) -> Result<()> {
         self.spec.caps.check_polling(hz)?;
-        let code = RATES.iter().position(|&r| r == hz).context("polling non gestito")? as u8;
+        let code = RATES.iter().position(|&r| r == hz).context(t!("polling non gestito", "polling rate not supported"))? as u8;
         self.modify(|cfg, buf| {
             buf[cfg.offsets().rate] = code;
             Ok(())
@@ -227,7 +227,7 @@ impl MouseDriver for Roccat {
     fn set_lighting(&mut self, zone: &str, effect: &Effect) -> Result<()> {
         self.spec.caps.check_effect(zone, effect)?;
         if self.cfg.layout != "emp" {
-            bail!("questo modello non ha luci configurabili");
+            bail!(t!("questo modello non ha luci configurabili", "this model has no configurable lighting"));
         }
         let effect = effect.clone();
         self.modify(|_, buf| {
@@ -236,7 +236,7 @@ impl MouseDriver for Roccat {
                 Effect::Static { .. } => (0xFF, 0, 0x01),
                 Effect::Breathing { .. } => (0xFF, 0, 0x03),
                 Effect::Spectrum => (0xFF, 1, 0x01),
-                ref e => bail!("effetto '{}' non gestito", e.name()),
+                ref e => bail!(tf!("effetto '{}' non gestito", "effect '{}' not supported", e.name())),
             };
             buf[19] = status;
             buf[20] = flow;
@@ -254,7 +254,7 @@ impl MouseDriver for Roccat {
     }
 
     fn set_brightness(&mut self, _: &str, _: u8) -> Result<()> {
-        bail!("questo mouse non ha un comando per la luminosità: usa un colore più scuro")
+        bail!(t!("questo mouse non ha un comando per la luminosità: usa un colore più scuro", "this mouse has no brightness command: use a darker color"))
     }
 }
 

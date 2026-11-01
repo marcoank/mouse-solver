@@ -16,6 +16,9 @@ pub struct DeviceSpec {
     pub caps: Capabilities,
     #[serde(default)]
     pub notes: Option<String>,
+    /// Le stesse note in inglese.
+    #[serde(default)]
+    pub notes_en: Option<String>,
     /// Altre coppie [vid, pid] dello stesso modello (revisioni, edizioni speciali).
     #[serde(default)]
     pub aliases: Vec<[u16; 2]>,
@@ -31,10 +34,18 @@ pub struct DeviceSpec {
 }
 
 impl DeviceSpec {
+    /// Note nella lingua dell'interfaccia (in italiano se manca la traduzione).
+    pub fn notes_text(&self) -> Option<&str> {
+        match crate::i18n::is_en() {
+            true => self.notes_en.as_deref().or(self.notes.as_deref()),
+            false => self.notes.as_deref(),
+        }
+    }
+
     /// Legge la sezione del driver, es. `spec.section::<RazerConfig>("razer")`.
     pub fn section<T: serde::de::DeserializeOwned>(&self, key: &str) -> Result<T> {
-        let v = self.extra.get(key).with_context(|| format!("{}: manca la sezione [{key}]", self.name))?;
-        v.clone().try_into().with_context(|| format!("{}: sezione [{key}] non valida", self.name))
+        let v = self.extra.get(key).with_context(|| crate::tf!("{}: manca la sezione [{key}]", "{}: section [{key}] is missing", self.name))?;
+        v.clone().try_into().with_context(|| crate::tf!("{}: sezione [{key}] non valida", "{}: invalid section [{key}]", self.name))
     }
 }
 

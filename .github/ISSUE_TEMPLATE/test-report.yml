@@ -1,0 +1,44 @@
+name: "Test report / Report di prova"
+description: "Tell us how mouse solver worked with your mouse / Raccontaci come è andata col tuo mouse"
+title: "[Test] <brand + model / marca + modello>"
+labels: ["test-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! / Grazie per la prova!
+        In the app open **"How did it go? Help us with a report"**, answer and press **Create report**: a `mouse-solver-report-*.json` file appears on your Desktop. Attach it below.
+        Nell'app apri **"Com'è andata? Aiutaci con un report"**, rispondi e premi **Crea report**: sul Desktop compare un file `mouse-solver-report-*.json`. Allegalo qui sotto.
+  - type: input
+    id: model
+    attributes:
+      label: "Mouse (brand, exact model, cable or wireless) / Mouse (marca, modello esatto, cavo o wireless)"
+      placeholder: "ROG Harpe Ace Mini, cable / cavo"
+    validations:
+      required: true
+  - type: checkboxes
+    id: works
+    attributes:
+      label: "What worked? / Cosa ha funzionato?"
+      options:
+        - label: "DPI"
+        - label: "Active stage / Stadio attivo"
+        - label: "Polling rate"
+        - label: "Lighting / Luci"
+        - label: "Settings kept after replugging the mouse / Le impostazioni restano dopo aver ricollegato il mouse"
+  - type: textarea
+    id: details
+    attributes:
+      label: "What happened? (errors, screenshots) / Cosa è successo? (errori, schermate)"
+  - type: textarea
+    id: report
+    attributes:
+      label: "Report file / File di report"
+      description: "Drag the mouse-solver-report-*.json file here / Trascina qui il file mouse-solver-report-*.json"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: "mouse solver version / versione"
+      placeholder: "0.1.0-beta.1"

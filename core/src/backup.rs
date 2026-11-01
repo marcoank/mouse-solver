@@ -12,10 +12,10 @@ pub struct Backup {
     pub state: MouseState,
 }
 
-/// %APPDATA%\mouse-cfg\backups
+/// %APPDATA%mouse-solverbackups
 pub fn dir() -> PathBuf {
     let base = std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
-    base.join("mouse-cfg").join("backups")
+    base.join("mouse-solver").join("backups")
 }
 
 pub fn save(device: &DeviceInfo, state: &MouseState) -> Result<PathBuf> {

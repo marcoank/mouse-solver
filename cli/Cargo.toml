@@ -1,10 +1,11 @@
 [package]
-name = "mouse-cfg"
+name = "mouse-solver"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [[bin]]
-name = "mouse-cfg"
+name = "mouse-solver"
 path = "src/main.rs"
 
 [dependencies]

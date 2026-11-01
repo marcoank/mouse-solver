@@ -5,6 +5,7 @@ pid = 0x0033
 driver = "sinowealth"
 status = "experimental"
 notes = "Firmware non in tabella = sola lettura, per sicurezza. Chiudi il software del produttore durante l'uso."
+notes_en = "Firmware not in the table = read-only, for safety. Close the manufacturer's software while using this app."
 
 [[sinowealth.firmware]]
 version = "V102"

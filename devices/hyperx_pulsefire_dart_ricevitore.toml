@@ -6,6 +6,7 @@ aliases = [[0x03F0, 0x068E]]
 driver = "hyperx"
 status = "experimental"
 notes = "Il mouse non permette di rileggere le impostazioni: si vedono gli ultimi valori scritti da qui. Ogni modifica viene salvata nel mouse (comando DE FF)."
+notes_en = "The mouse can't read its settings back: you see the last values written from here. Every change is saved to the mouse (DE FF command)."
 
 [hyperx]
 family = "dart"
