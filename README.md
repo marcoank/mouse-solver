@@ -6,6 +6,8 @@ Set your gaming mouse DPI, polling rate and lighting without Synapse, Armoury Cr
 One portable exe: open it, write the settings into the mouse memory, close it. No background services, no account,
 no network connection.
 
+<img src="docs/screenshot.png" alt="Mouse Solver" width="400">
+
 > **Beta.** 369 model files cover 421 USB IDs from 13 brands plus all HID++ 2.0 Logitech mice, but only a few have
 > been tested on real hardware. Everything else uses protocols taken from open source projects. Please
 > [report how it went](../../issues/new?template=test-report.yml): it is how models move from *experimental* to *tested*.

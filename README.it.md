@@ -6,6 +6,8 @@ Imposta DPI, polling rate e luci del mouse da gaming senza Synapse, Armoury Crat
 Un exe portable: lo apri, scrivi le impostazioni nella memoria del mouse, lo chiudi. Niente servizi in background,
 niente account, nessuna connessione di rete.
 
+<img src="docs/screenshot.png" alt="Mouse Solver" width="400">
+
 > **Beta.** 369 file modello coprono 421 identificativi USB di 13 marchi più tutti i Logitech HID++ 2.0, ma solo pochi
 > sono stati provati su un mouse vero. Gli altri usano protocolli presi da progetti open source.
 > [Raccontaci com'è andata](../../issues/new?template=test-report.yml): è così che un modello passa da *sperimentale* a *provato*.
