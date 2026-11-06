@@ -26,7 +26,7 @@ personal data. Attach it to a report with "Open the reports page".
 Mouse not recognised? Run mouse-solver-kit.exe, choose 1 and attach the report_*.json files.
 
 IF SOMETHING GOES WRONG
-"Restore last backup" puts the previous settings back. In any case the mouse stays normal and you
+"Restore backup" puts the previous settings back. In any case the mouse stays normal and you
 can always set it up again with the vendor software.
 
 Not affiliated with any mouse manufacturer: brand names are used only to identify compatible
