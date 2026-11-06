@@ -45,7 +45,7 @@ progetti open source, non ancora provato.
 ### Da sapere
 
 - **Solo scrittura** (SteelSeries, HyperX Dart e Saga Pro, Glorious G2 e GP): il mouse non permette di rileggere,
-  l'app mostra i valori scritti l'ultima volta da qui. Usa "Misura polling" per controllare.
+  l'app mostra i valori scritti l'ultima volta da qui. Usa "Misura" nel riquadro Polling rate per controllare.
 - **Glorious Model O 2 / I 2 / D 2 / O 2 Mini**: il blocco di configurazione va riscritto intero, quindi lift-off,
   debounce e motion sync tornano ai valori di fabbrica e il mouse passa al profilo 1.
 - **Glorious PRO e Model O/D Wireless, Pulsar famiglia S, Lamzu**: nessun comando di salvataggio è documentato;

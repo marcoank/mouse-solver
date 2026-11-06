@@ -26,7 +26,7 @@ Allegalo a una segnalazione con "Apri la pagina delle segnalazioni".
 Mouse non riconosciuto? Avvia mouse-solver-kit.exe, scegli 1 e allega i file report_*.json.
 
 SE QUALCOSA NON VA
-"Ripristina ultimo backup" rimette le impostazioni di prima. In ogni caso il mouse resta normale e
+"Ripristina backup" rimette le impostazioni di prima. In ogni caso il mouse resta normale e
 puoi sempre reimpostarlo col software del produttore.
 
 Non affiliato con nessun produttore di mouse: i nomi dei marchi servono solo a indicare i modelli
