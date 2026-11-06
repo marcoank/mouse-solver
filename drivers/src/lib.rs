@@ -79,14 +79,15 @@ pub fn scan(api: &HidApi, db: &Db) -> Vec<Found> {
         let (vid, pid) = (d.vendor_id(), d.product_id());
         let manufacturer = d.manufacturer_string().unwrap_or_default().trim().to_string();
         let product = d.product_string().unwrap_or_default().trim().to_string();
-        let is_mouse = mice.contains(&(vid, pid));
+        if out.iter().any(|f| f.vid == vid && f.pid == pid) {
+            continue;
+        }
+        let is_mouse = mice.contains(&(vid, pid)) && looks_like_mouse(api, vid, pid, &product);
         let spec = db
             .find_for(vid, pid, &manufacturer, &product)
             .or_else(|| if is_mouse { db.find_generic(vid) } else { None });
-        if spec.is_none() && !is_mouse {
-            continue;
-        }
-        if out.iter().any(|f| f.vid == vid && f.pid == pid) {
+        // Fuori dal database: solo mouse veri con un nome (niente tastiere, pad, mouse virtuali).
+        if spec.is_none() && (!is_mouse || product.is_empty()) {
             continue;
         }
         out.push(Found {
@@ -99,6 +100,26 @@ pub fn scan(api: &HidApi, db: &Db) -> Vec<Found> {
     }
     out.sort_by_key(|f| (f.spec.is_none(), f.vid, f.pid));
     out
+}
+
+/// Tastiere, controller e cuffie espongono spesso anche una collezione mouse (tasti multimediali,
+/// touchpad): li riconosco dal nome o dalla prima interfaccia, che in un mouse non è una tastiera.
+fn looks_like_mouse(api: &HidApi, vid: u16, pid: u16, product: &str) -> bool {
+    let name = product.to_lowercase();
+    const NOT_MICE: &[&str] = &["keyboard", "keypad", "kbd", "tastiera", "headset", "gamepad", "controller", "joystick", "wheel", "pedal"];
+    if NOT_MICE.iter().any(|w| name.contains(w)) {
+        return false;
+    }
+    if ["mouse", "receiver", "dongle"].iter().any(|w| name.contains(w)) {
+        return true;
+    }
+    let ifaces: Vec<_> = api.device_list().filter(|d| d.vendor_id() == vid && d.product_id() == pid).collect();
+    let Some(first) = ifaces.iter().map(|d| d.interface_number()).min() else { return false };
+    let first: Vec<_> = ifaces.iter().filter(|d| d.interface_number() == first).collect();
+    let has = |u: u16| first.iter().any(|d| d.usage_page() == 0x01 && d.usage() == u);
+    // Joystick e gamepad ovunque; tastiera sulla prima interfaccia senza mouse accanto.
+    let pad = ifaces.iter().any(|d| d.usage_page() == 0x01 && matches!(d.usage(), 0x04 | 0x05));
+    !pad && !(has(0x06) && !has(0x02))
 }
 
 /// Apre il driver per un mouse trovato da `scan` (usa il suo VID/PID reale, che può essere un alias).
